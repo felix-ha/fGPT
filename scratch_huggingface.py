@@ -1,11 +1,13 @@
 import torch
 from transformers import GPT2Config, AutoTokenizer, GPT2Model, GPT2LMHeadModel
+from dionysus.utils import compute_size
 
 
 def print_model_stats(model):
     print(
         f"{model.__class__.__name__} has {sum(p.numel() for p in model.parameters() if p.requires_grad):,} parameters"
     )
+    print(f"and is {compute_size(model)} mb large")
 
 
 tokenizer = AutoTokenizer.from_pretrained("gpt2")
