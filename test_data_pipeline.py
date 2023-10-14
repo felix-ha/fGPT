@@ -2,5 +2,5 @@ from data_pipeline import pipeline
 
 
 def test_pipeline():
-    pipeline("data/token_1.txt")
+    pipeline("data/data.txt")
     assert True

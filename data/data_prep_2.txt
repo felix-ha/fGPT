@@ -1,0 +1,8 @@
+A B C
+<|endoftext|>
+C B A
+<|endoftext|>
+
+A B C
+<|endoftext|> A B C D E
+<|endoftext|> E E B <|endoftext|>E D A B C
