@@ -1,4 +1,6 @@
-import torch 
+import torch
+
+
 def split_corpus(corpus: str, end_of_text_token: str) -> list:
     """
     Split corpus into sentences according to end_of_text_token.
@@ -24,6 +26,7 @@ def input_ids_to_tensor(input_ids: list[list[int]], pad: int = 0) -> torch.tenso
     If the inner lists have different lengths, they will be padded with pad.
     """
     max_len = max([len(input_id) for input_id in input_ids])
-    input_ids_padded = [input_id + [pad] * (max_len - len(input_id)) for input_id in input_ids]
+    input_ids_padded = [
+        input_id + [pad] * (max_len - len(input_id)) for input_id in input_ids
+    ]
     return torch.tensor(input_ids_padded)
-

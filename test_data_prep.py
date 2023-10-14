@@ -1,4 +1,5 @@
-from data_prep import split_corpus, texts_to_input_ids
+import torch
+from data_prep import split_corpus, texts_to_input_ids, input_ids_to_tensor
 from tokenizer import create_encoder
 
 END_OF_TEXT = "<|endoftext|>"
@@ -20,3 +21,10 @@ def test_texts_to_input_ids():
     text_ids_actual = texts_to_input_ids(input, encoder)
     text_ids_expected = [[0, 1, 2], [2, 1, 0], [0, 1, 2, 3, 4], [4, 3, 0, 1, 2]]
     assert text_ids_actual == text_ids_expected
+
+
+def test_input_ids_to_tensor():
+    input_ids = [[1, 2], [1], [1, 2, 3]]
+    X_actual = input_ids_to_tensor(input_ids)
+    X_expected = torch.tensor([[1, 2, 0], [1, 0, 0], [1, 2, 3]])
+    assert torch.equal(X_actual, X_expected)

@@ -192,8 +192,8 @@ def test_encoder():
     assert actual == expected
 
 
-# TODO
-@pytest.mark.skip(reason="implement handling of unknown token")
+# TODO implement handling of unknown token
+@pytest.mark.skip()
 def test_encoder_unk():
     token_to_int = {
         "\n": 0,
@@ -232,8 +232,8 @@ def test_decoder():
     assert actual == expected
 
 
-# TODO
-@pytest.mark.skip(reason="implement whitespaces during generating time")
+# TODO implement whitespaces during generating time
+@pytest.mark.skip()
 def test_decoder_improved():
     int_to_token = {
         0: "\n",
