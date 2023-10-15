@@ -1,5 +1,6 @@
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from constants import PADDING_ID
 
 
 def split_corpus(corpus: str, end_of_text_token: str) -> list:
@@ -21,7 +22,9 @@ def texts_to_input_ids(texts: list[str], encoder: callable) -> list[list[int]]:
     return input_ids
 
 
-def input_ids_to_tensor(input_ids: list[list[int]], pad: int = 0) -> torch.tensor:
+def input_ids_to_tensor(
+    input_ids: list[list[int]], pad: int = PADDING_ID
+) -> torch.tensor:
     """
     Convert a list of lists of input IDs to a tensor.
     If the inner lists have different lengths, they will be padded with pad.
@@ -36,13 +39,19 @@ def input_ids_to_tensor(input_ids: list[list[int]], pad: int = 0) -> torch.tenso
     return torch.tensor(input_ids_padded)
 
 
+def collate_fn(batch):
+    x, y = zip(*batch)
+    return input_ids_to_tensor(x), input_ids_to_tensor(y)
+
+
 class LanguageModelDataset(Dataset):
-    def __init__(self, input_ids: list[list[int]], pad: int = 0):
+    def __init__(self, input_ids: list[list[int]]):
+        super(LanguageModelDataset, self).__init__()
         self.input_ids = input_ids
-        self.pad = pad
 
     def __len__(self):
         return len(self.input_ids)
 
+    # slicing is not implemented
     def __getitem__(self, idx):
-        return input_ids_to_tensor(self.input_ids[idx], self.pad)
+        return self.input_ids[idx][:-1], self.input_ids[idx][1:]

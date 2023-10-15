@@ -1,13 +1,18 @@
+import pytest
 import torch
 from data_prep import (
     split_corpus,
     texts_to_input_ids,
     input_ids_to_tensor,
     LanguageModelDataset,
+    collate_fn,
 )
+from torch.utils.data import DataLoader
 from tokenizer import create_encoder
 
 END_OF_TEXT = "<|endoftext|>"
+END_OF_TEXT_ID = 99
+PADDING_ID = 0
 
 
 def test_split_corpus():
@@ -37,18 +42,76 @@ def test_input_ids_to_tensor_one_dim():
 
 def test_input_ids_to_tensor():
     input_ids = [[1, 2], [1], [1, 2, 3]]
-    X_actual = input_ids_to_tensor(input_ids)
-    X_expected = torch.tensor([[1, 2, 0], [1, 0, 0], [1, 2, 3]])
+    X_actual = input_ids_to_tensor(input_ids, PADDING_ID)
+    X_expected = torch.tensor(
+        [[1, 2, PADDING_ID], [1, PADDING_ID, PADDING_ID], [1, 2, 3]]
+    )
     assert torch.equal(X_actual, X_expected)
 
 
 def test_dataset():
-    input_ids = [[1, 2], [1], [1, 2, 3]]
+    input_ids = [
+        [1, 2, 3, END_OF_TEXT_ID],
+        [4, 5, END_OF_TEXT_ID],
+        [1, 2, 3, 4, 5, 6, END_OF_TEXT_ID],
+    ]
     dataset = LanguageModelDataset(input_ids)
     assert len(dataset) == 3
-    assert torch.equal(dataset[0], torch.tensor([[1, 2]]))
-    assert torch.equal(dataset[1], torch.tensor([[1]]))
-    assert torch.equal(dataset[2], torch.tensor([[1, 2, 3]]))
-    assert torch.equal(dataset[-1], torch.tensor([[1, 2, 3]]))
-    X_batch_expected = torch.tensor([[1, 2, 0], [1, 0, 0], [1, 2, 3]])
-    assert torch.equal(dataset[:], X_batch_expected)
+
+    x_1, y_1 = dataset[0]
+    assert x_1 == [1, 2, 3]
+    assert y_1 == [2, 3, END_OF_TEXT_ID]
+
+    x_2, y_2 = dataset[1]
+    assert x_2 == [4, 5]
+    assert y_2 == [5, END_OF_TEXT_ID]
+
+    x_3, y_3 = dataset[2]
+    assert x_3 == [1, 2, 3, 4, 5, 6]
+    assert y_3 == [2, 3, 4, 5, 6, END_OF_TEXT_ID]
+
+
+# slicing is not implemented
+def test_dataset_slicing():
+    input_ids = [
+        [1, 2, 3, END_OF_TEXT_ID],
+        [4, 5, END_OF_TEXT_ID],
+        [1, 2, 3, 4, 5, 6, END_OF_TEXT_ID],
+    ]
+    dataset = LanguageModelDataset(input_ids)
+
+    x_batch, y_batch = dataset[0:2]
+    with pytest.raises(AssertionError):
+        assert x_batch == [[1, 2, 3], [4, 5]]
+        assert y_batch != [[2, 3, END_OF_TEXT_ID], [5, END_OF_TEXT_ID]]
+
+
+def test_dataloader_single_batch():
+    input_ids = [
+        [1, 2, 3, END_OF_TEXT_ID],
+        [4, 5, END_OF_TEXT_ID],
+        [1, 2, 3, 4, 5, 6, END_OF_TEXT_ID],
+    ]
+    dataset = LanguageModelDataset(input_ids)
+    dataloader = DataLoader(dataset, batch_size=2, shuffle=False, collate_fn=collate_fn)
+    for batch in dataloader:
+        x, y = batch
+        assert torch.equal(x, torch.tensor([[1, 2, 3], [4, 5, PADDING_ID]]))
+        assert torch.equal(
+            y, torch.tensor([[2, 3, END_OF_TEXT_ID], [5, END_OF_TEXT_ID, PADDING_ID]])
+        )
+        break
+
+
+def test_dataloader_last_batch():
+    input_ids = [
+        [1, 2, 3, END_OF_TEXT_ID],
+        [4, 5, END_OF_TEXT_ID],
+        [1, 2, 3, 4, 5, 6, END_OF_TEXT_ID],
+    ]
+    dataset = LanguageModelDataset(input_ids)
+    dataloader = DataLoader(dataset, batch_size=2, shuffle=False, collate_fn=collate_fn)
+    for batch in dataloader:
+        x, y = batch
+    assert torch.equal(x, torch.tensor([[1, 2, 3, 4, 5, 6]]))
+    assert torch.equal(y, torch.tensor([[2, 3, 4, 5, 6, END_OF_TEXT_ID]]))
