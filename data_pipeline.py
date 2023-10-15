@@ -1,6 +1,7 @@
 import time
 from dataclasses import dataclass
 import torch
+from torch.utils.data import DataLoader
 
 from tokenizer import (
     split_tokens_raw,
@@ -13,7 +14,7 @@ from tokenizer import (
 from data_prep import (
     split_corpus,
     texts_to_input_ids,
-    input_ids_to_tensor,
+    collate_fn,
     LanguageModelDataset,
 )
 from constants import *
@@ -43,7 +44,8 @@ class Data:
         encoder: Callable that converts a string to a list of tokens (int).
         int_to_token: Mapping from integers to tokens.
         decoder: Callable that converts a list of integers to a string.
-
+        dataloader_train: Dataloader for the training set.
+        dataloader_validation: Dataloader for the validation set.
     """
 
     n_positions: int
@@ -52,6 +54,8 @@ class Data:
     encoder: callable
     int_to_token: dict
     decoder: callable
+    dataloader_train: torch.utils.data.DataLoader
+    dataloader_validation: torch.utils.data.DataLoader
 
 
 def pipeline(file_path_train, file_path_validation):
@@ -87,6 +91,13 @@ def pipeline(file_path_train, file_path_validation):
     dataset_train = LanguageModelDataset(texts_ids_train)
     dataset_validation = LanguageModelDataset(texts_ids_validation)
 
+    dataloader_train = DataLoader(
+        dataset_train, batch_size=2, shuffle=True, collate_fn=collate_fn
+    )
+    dataloader_validation = DataLoader(
+        dataset_validation, batch_size=2, shuffle=False, collate_fn=collate_fn
+    )
+
     end_time = time.perf_counter()
     print(f"Time taken: {end_time - start_time:.6f} seconds")
 
@@ -97,4 +108,6 @@ def pipeline(file_path_train, file_path_validation):
         encoder=encoder,
         int_to_token=int_to_token,
         decoder=decoder,
+        dataloader_train=dataloader_train,
+        dataloader_validation=dataloader_validation,
     )

@@ -17,6 +17,8 @@ def data():
 @pytest.mark.dependency()
 def test_data_pipeline(data):
     assert data.n_positions == 9
+    assert len(data.dataloader_train) == 3
+    assert len(data.dataloader_validation) == 2
 
 
 @pytest.mark.dependency(depends=["test_data_pipeline"])
