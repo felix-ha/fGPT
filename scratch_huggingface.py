@@ -22,7 +22,6 @@ context = 4
 x = torch.zeros((batch_size, context), dtype=torch.long)
 
 inputs = tokenizer("Hello my name is", return_tensors="pt")
-asdf = inputs.input_ids.shape
 assert x.shape == inputs.input_ids.shape
 
 y_features = model_bare(x)

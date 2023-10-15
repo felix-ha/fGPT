@@ -1,5 +1,10 @@
 import torch
-from data_prep import split_corpus, texts_to_input_ids, input_ids_to_tensor
+from data_prep import (
+    split_corpus,
+    texts_to_input_ids,
+    input_ids_to_tensor,
+    LanguageModelDataset,
+)
 from tokenizer import create_encoder
 
 END_OF_TEXT = "<|endoftext|>"
@@ -23,8 +28,27 @@ def test_texts_to_input_ids():
     assert text_ids_actual == text_ids_expected
 
 
+def test_input_ids_to_tensor_one_dim():
+    input_ids = [1, 2]
+    X_actual = input_ids_to_tensor(input_ids)
+    X_expected = torch.tensor([[1, 2]])
+    assert torch.equal(X_actual, X_expected)
+
+
 def test_input_ids_to_tensor():
     input_ids = [[1, 2], [1], [1, 2, 3]]
     X_actual = input_ids_to_tensor(input_ids)
     X_expected = torch.tensor([[1, 2, 0], [1, 0, 0], [1, 2, 3]])
     assert torch.equal(X_actual, X_expected)
+
+
+def test_dataset():
+    input_ids = [[1, 2], [1], [1, 2, 3]]
+    dataset = LanguageModelDataset(input_ids)
+    assert len(dataset) == 3
+    assert torch.equal(dataset[0], torch.tensor([[1, 2]]))
+    assert torch.equal(dataset[1], torch.tensor([[1]]))
+    assert torch.equal(dataset[2], torch.tensor([[1, 2, 3]]))
+    assert torch.equal(dataset[-1], torch.tensor([[1, 2, 3]]))
+    X_batch_expected = torch.tensor([[1, 2, 0], [1, 0, 0], [1, 2, 3]])
+    assert torch.equal(dataset[:], X_batch_expected)

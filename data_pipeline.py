@@ -10,7 +10,12 @@ from tokenizer import (
     create_encoder,
     create_decoder,
 )
-from data_prep import split_corpus, texts_to_input_ids, input_ids_to_tensor
+from data_prep import (
+    split_corpus,
+    texts_to_input_ids,
+    input_ids_to_tensor,
+    LanguageModelDataset,
+)
 from constants import *
 
 
@@ -32,14 +37,12 @@ class Data:
     Result from data pipeline that builds a data set for a language model.
 
     Args:
-        n_positions: Number of positions in the input tensor.
+        n_positions:  The maximum sequence length that this model can be used. Determined by the maximum length of the texts in the training set
         vocab_size: Size of the vocabulary.
         token_to_int: Mapping from tokens to integers.
         encoder: Callable that converts a string to a list of tokens (int).
         int_to_token: Mapping from integers to tokens.
         decoder: Callable that converts a list of integers to a string.
-        X_train: Input tensor for training.
-        X_validation: Input tensor for validation.
 
     """
 
@@ -49,8 +52,6 @@ class Data:
     encoder: callable
     int_to_token: dict
     decoder: callable
-    X_train: torch.tensor
-    X_validation: torch.tensor
 
 
 def pipeline(file_path_train, file_path_validation):
@@ -81,19 +82,19 @@ def pipeline(file_path_train, file_path_validation):
     texts_ids_train = texts_to_input_ids(texts_train, encoder)
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
 
+    n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+
+    dataset_train = LanguageModelDataset(texts_ids_train)
+    dataset_validation = LanguageModelDataset(texts_ids_validation)
+
     end_time = time.perf_counter()
     print(f"Time taken: {end_time - start_time:.6f} seconds")
 
-    X_train = input_ids_to_tensor(texts_ids_train)
-    X_validation = input_ids_to_tensor(texts_ids_validation)
-
     return Data(
-        n_positions=X_train.shape[1],
+        n_positions=n_positions,
         vocab_size=len(int_to_token),
         token_to_int=token_to_int,
         encoder=encoder,
         int_to_token=int_to_token,
         decoder=decoder,
-        X_train=X_train,
-        X_validation=X_validation,
     )
