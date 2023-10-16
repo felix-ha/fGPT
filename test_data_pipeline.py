@@ -7,7 +7,7 @@ import pytest
 import tempfile
 from data_pipeline import pipeline
 from dionysus.training import TrainingConfig, train
-from model import simpleGPT, cross_entropy_language_model
+from model import simpleGPT, cross_entropy_language_model, generate
 
 
 @pytest.fixture
@@ -40,7 +40,7 @@ def test_training(data):
 
         train_config = TrainingConfig(
             model=model,
-            epochs=5,
+            epochs=500,
             loss_func=loss_func,
             training_loader=data.dataloader_train,
             validation_loader=data.dataloader_validation,
@@ -54,5 +54,11 @@ def test_training(data):
         )
 
         train(train_config)
+
+        prompt = "Tom was cleaning"
+        # TODO fix stop_token_id
+        output = generate(
+            model, prompt, data.encoder, data.decoder, stop_token_id=99, max_n=5
+        )
 
         assert True

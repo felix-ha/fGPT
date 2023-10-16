@@ -119,3 +119,21 @@ def cross_entropy_language_model(logits, targets):
     targets = targets.view(B * T)
     loss = F.cross_entropy(logits, targets)
     return loss
+
+
+def generate(model, prompt, encoder, decoder, stop_token_id, max_n):
+    response_ids = []
+    x_input = torch.tensor([encoder(prompt)])
+    response_idx = x_input.shape[1]
+
+    for _ in range(max_n):
+        y_output = model(x_input)
+        logits_last = y_output[:, -1, :]
+        probabilities_last = torch.softmax(logits_last, dim=-1)
+        token_id = torch.argmax(probabilities_last)
+        if token_id == stop_token_id:
+            break
+        x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
+
+    response_ids = x_input[:, response_idx:]
+    return decoder(response_ids.flatten().tolist())

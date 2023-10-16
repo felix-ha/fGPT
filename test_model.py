@@ -1,7 +1,12 @@
 import pytest
 import torch
 from transformers import GPT2Config, GPT2LMHeadModel
-from model import cross_entropy_language_model
+from model import cross_entropy_language_model, generate
+from tokenizer import create_encoder, create_decoder
+
+
+END_OF_TEXT = "<|endoftext|>"
+
 
 # TODO fixt test
 def test_cross_entropy_language_model():
@@ -36,3 +41,40 @@ def test_lm_head_dims():
 
     y_logits = model(x).logits
     assert y_logits.shape == (batch_size, context, vocab_size)
+
+
+class MockModel:
+    def __init__(self):
+        self.idx = 0
+
+    def __call__(self, x):
+        # TODO fix output, needs to be batched
+        if self.idx == 0:
+            self.idx += 1
+            return torch.tensor([[[2, 4, 7, 1, 1]]], dtype=torch.float32)
+        if self.idx == 1:
+            self.idx += 1
+            return torch.tensor([[[1, 1, 1, 8, 2]]], dtype=torch.float32)
+        if self.idx == 2:
+            self.idx += 1
+            return torch.tensor([[[3, 1, 1, 1, 2]]], dtype=torch.float32)
+        if self.idx == 3:
+            self.idx += 1
+            return torch.tensor([[[1, 1, 1, 1, 2]]], dtype=torch.float32)
+
+        return x
+
+
+def test_generate():
+    token_to_index = {"a": 0, "b": 1, "c": 2, "d": 3, "END_OF_TEXT": 4}
+    index_to_token = {v: k for k, v in token_to_index.items()}
+    encoder = create_encoder(token_to_index, delimiters=[" "], tokens_to_remove=[" "])
+    decoder = create_decoder(index_to_token)
+
+    model = MockModel()
+
+    prompt = "a b"
+
+    output = generate(model, prompt, encoder, decoder, stop_token_id=4, max_n=10)
+
+    assert output == "c d a "
