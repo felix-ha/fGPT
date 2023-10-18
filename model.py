@@ -131,9 +131,9 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n):
         logits_last = y_output[:, -1, :]
         probabilities_last = torch.softmax(logits_last, dim=-1)
         token_id = torch.argmax(probabilities_last)
+        x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
         if token_id == stop_token_id:
             break
-        x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
 
     response_ids = x_input[:, response_idx:]
     return decoder(response_ids.flatten().tolist())

@@ -80,4 +80,4 @@ def test_generate():
 
     output = generate(model, prompt, encoder, decoder, stop_token_id=4, max_n=10)
 
-    assert output == "c d a "
+    assert output == f"c d a {END_OF_TEXT} "
