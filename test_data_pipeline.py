@@ -40,7 +40,7 @@ def test_training(data):
 
         train_config = TrainingConfig(
             model=model,
-            epochs=500,
+            epochs=5,
             loss_func=loss_func,
             training_loader=data.dataloader_train,
             validation_loader=data.dataloader_validation,
@@ -55,7 +55,7 @@ def test_training(data):
 
         train(train_config)
 
-        prompt = "Tom was cleaning"
+        prompt = "Alex was cleaning"
         # TODO fix stop_token_id
         output = generate(
             model, prompt, data.encoder, data.decoder, stop_token_id=99, max_n=5

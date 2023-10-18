@@ -148,7 +148,7 @@ def test_unique_tokens():
 
 def test_token_dicts():
     tokens = ["\n", ".", END_OF_TEXT, "Start", "This", "a", "is", "test"]
-    token_to_int_actual, int_to_token_actual = create_token_to_int_dicts(tokens)
+    token_to_int_actual, int_to_token_actual = create_token_to_int_dicts(tokens, UNK)
     token_to_int_excpect = {
         "\n": 0,
         ".": 1,
@@ -158,6 +158,7 @@ def test_token_dicts():
         "a": 5,
         "is": 6,
         "test": 7,
+        UNK: 8,
     }
     int_to_token_expected = {
         0: "\n",
@@ -168,6 +169,7 @@ def test_token_dicts():
         5: "a",
         6: "is",
         7: "test",
+        8: UNK,
     }
     assert token_to_int_actual == token_to_int_excpect
     assert int_to_token_actual == int_to_token_expected
@@ -185,15 +187,13 @@ def test_encoder():
         "test": 7,
         UNK: 8,
     }
-    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE)
+    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
     string = f"This is a test.{END_OF_TEXT}"
     expected = [4, 6, 5, 7, 1, 2]
     actual = encoder(string)
     assert actual == expected
 
 
-# TODO implement handling of unknown token
-@pytest.mark.skip()
 def test_encoder_unk():
     token_to_int = {
         "\n": 0,
@@ -204,8 +204,9 @@ def test_encoder_unk():
         "a": 5,
         "is": 6,
         "test": 7,
+        UNK: 8,
     }
-    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE)
+    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
     string = f"Pytest is a test.{END_OF_TEXT}"
     expected = [8, 6, 5, 7, 1, 2]
     actual = encoder(string)

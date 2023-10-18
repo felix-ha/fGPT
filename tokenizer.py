@@ -29,16 +29,17 @@ def get_unique_tokens(tokens: list[str]) -> list[str]:
 
 
 def create_token_to_int_dicts(
-    tokens: list[str],
+    tokens: list[str], unk
 ) -> tuple[dict[str, int], dict[int, str]]:
     token_to_int = {token: i for i, token in enumerate(tokens)}
-    int_to_token = {i: token for i, token in enumerate(tokens)}
+    token_to_int[unk] = len(token_to_int)
+    int_to_token = {i: token for token, i in token_to_int.items()}
     return token_to_int, int_to_token
 
 
-def create_encoder(token_to_index, delimiters, tokens_to_remove):
+def create_encoder(token_to_index, delimiters, tokens_to_remove, unk):
     return lambda string: [
-        token_to_index[char]
+        token_to_index.get(char, token_to_index[unk])
         for char in string_to_tokens(string, delimiters, tokens_to_remove)
     ]
 
