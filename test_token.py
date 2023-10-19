@@ -142,7 +142,8 @@ def test_unique_tokens():
         "is",
     ]
     tokens_expected = ["\n", ".", "<|endoftext|>", "Start", "This", "a", "is", "test"]
-    tokens_actual = get_unique_tokens(tokens)
+    # TODO improve test
+    tokens_actual = get_unique_tokens(tokens, 50, tokens_not_to_filter=[])
     assert tokens_actual == tokens_expected
 
 

@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import pandas as pd
 
 
 class Head(nn.Module):
@@ -121,19 +122,32 @@ def cross_entropy_language_model(logits, targets):
     return loss
 
 
-def generate(model, prompt, encoder, decoder, stop_token_id, max_n):
+def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_step):
     response_ids = []
     x_input = torch.tensor([encoder(prompt)])
     response_idx = x_input.shape[1]
+    iterations = []
+    with torch.no_grad():
+        for _ in range(max_n):
+            iteration = dict()
+            iteration["Input"] = decoder(x_input.squeeze().tolist())
+            y_output = model(x_input)
+            logits_last = y_output[:, -1, :]
+            probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
+            sorted_token_ids = torch.argsort(
+                probabilities_next_token, dim=-1, descending=True
+            )
+            for choice_idx in range(choices_per_step):
+                token_id = sorted_token_ids[choice_idx].item()
+                token_prob = probabilities_next_token[token_id].cpu().numpy()
+                token_choice = f"{decoder([token_id])} ({100 * token_prob:.2f}%)"
+                iteration[f"Choice {choice_idx+1}"] = token_choice
 
-    for _ in range(max_n):
-        y_output = model(x_input)
-        logits_last = y_output[:, -1, :]
-        probabilities_last = torch.softmax(logits_last, dim=-1)
-        token_id = torch.argmax(probabilities_last)
-        x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
-        if token_id == stop_token_id:
-            break
+            token_id = torch.argmax(probabilities_next_token)
+            x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
+            iterations.append(iteration)
+            if token_id == stop_token_id:
+                break
 
     response_ids = x_input[:, response_idx:]
-    return decoder(response_ids.flatten().tolist())
+    return decoder(response_ids.flatten().tolist()), pd.DataFrame(iterations)

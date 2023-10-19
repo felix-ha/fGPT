@@ -1,4 +1,7 @@
 import re
+import pandas as pd
+from constants import TOKENS_NOT_TO_FILTER
+import logging
 
 
 def split_tokens_raw(corpus: str, delimiters: list[str]) -> list[str]:
@@ -23,9 +26,31 @@ def string_to_tokens(
     return tokens
 
 
-def get_unique_tokens(tokens: list[str]) -> list[str]:
-    unique_tokens = list(set(tokens))
-    return sorted(unique_tokens)
+def get_unique_tokens(
+    tokens: list[str],
+    vocab_size: int,
+    tokens_not_to_filter: list[str] = TOKENS_NOT_TO_FILTER,
+) -> list[str]:
+    """
+    Get unique tokens from a list of tokens.
+    Only keeps the most frequent tokens up to the vocab_size.
+    tokens_not_to_filter will be excluded from the filtering.
+    """
+    token_all_to_filter = [
+        token for token in tokens if token not in tokens_not_to_filter
+    ]
+    df = pd.DataFrame(token_all_to_filter, columns=["token"])
+    df = df.groupby("token").size().reset_index(name="token_count")
+    df = df.sort_values(by=["token_count"], ascending=False)
+    df_final = df.head(vocab_size)
+    tokens_unique = df_final["token"].values.tolist() + tokens_not_to_filter
+    logging.info(
+        f"Number of unique tokens before filtering: {len(df) + len(tokens_not_to_filter)}"
+    )
+    logging.info(
+        f"Number of unique tokens after filtering: {len(tokens_unique)} (= target_vocab_size + len(TOKENS_NOT_TO_FILTER))"
+    )
+    return sorted(tokens_unique)
 
 
 def create_token_to_int_dicts(

@@ -1,7 +1,11 @@
 import time
 from dataclasses import dataclass
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
+
+from dionysus.training import TrainingConfig, train
+from model import simpleGPT, cross_entropy_language_model, generate
 
 from tokenizer import (
     split_tokens_raw,
@@ -19,11 +23,15 @@ from data_prep import (
 )
 from constants import *
 
+import logging
+
+logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
+
 
 def print_unique_characters(corpus: str):
     unique_chars = set(corpus.replace(END_OF_TEXT, ""))
     sorted_chars = sorted(unique_chars)
-    print(sorted_chars)
+    logging.info(f"Unique characters: {sorted_chars}")
 
 
 def replace_characters(corpus, replacment_dict):
@@ -64,20 +72,22 @@ def pipeline(file_path_train, file_path_validation):
     # Create vocabular, i. e. token <-> int mappings
     with open(file_path_train, "r", encoding="utf8") as file:
         corpus_train_raw = file.read()
+    print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
     tokens_raw = split_tokens_raw(corpus_train_clean, DELIMTERS)
     tokens_all = clean_tokens(tokens_raw, TOKEN_TO_REMOVE)
-    tokens_unique = get_unique_tokens(tokens_all)
+    tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
     token_to_int, int_to_token = create_token_to_int_dicts(tokens_unique, UNK)
+    vocab_size = len(int_to_token)
     encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
     decoder = create_decoder(int_to_token)
 
-    print_unique_characters(corpus_train_raw)
-    print(f"Size of vocabulary: {len(int_to_token)}")
+    logging.info(f"Size of vocabulary: {vocab_size}")
 
     # Split whole corpus after character replacments in CHARACTER_REPLACEMENTS accoring to END_OF_TEXT token
     texts_train = split_corpus(corpus_train_clean, END_OF_TEXT)
-    # TODO implement handling of unknown token in data_validation.txt
+    logging.info(f"Number of stories: {len(texts_train)}")
+
     with open(file_path_validation, "r", encoding="utf8") as file:
         corpus_validation_raw = file.read()
     texts_validation = split_corpus(corpus_validation_raw, END_OF_TEXT)
@@ -87,6 +97,10 @@ def pipeline(file_path_train, file_path_validation):
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
 
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+    logging.info(f"Maxmial size of a text: {n_positions}")
+    logging.info(
+        f"Average length of stories: {np.mean([len(text_ids) for text_ids in texts_ids_train]):.1f}"
+    )
 
     dataset_train = LanguageModelDataset(texts_ids_train)
     dataset_validation = LanguageModelDataset(texts_ids_validation)
@@ -99,11 +113,11 @@ def pipeline(file_path_train, file_path_validation):
     )
 
     end_time = time.perf_counter()
-    print(f"Time taken: {end_time - start_time:.6f} seconds")
+    logging.info(f"Time taken: {end_time - start_time:.6f} seconds")
 
     return Data(
         n_positions=n_positions,
-        vocab_size=len(int_to_token),
+        vocab_size=vocab_size,
         token_to_int=token_to_int,
         encoder=encoder,
         int_to_token=int_to_token,
@@ -111,3 +125,53 @@ def pipeline(file_path_train, file_path_validation):
         dataloader_train=dataloader_train,
         dataloader_validation=dataloader_validation,
     )
+
+
+if __name__ == "__main__":
+    data = pipeline("data/data_train.txt", "data/data_validation.txt")
+
+    stop_token_id = data.token_to_int[END_OF_TEXT]
+
+    model = simpleGPT(
+        data.vocab_size,
+        n_embd=8,
+        num_heads=4,
+        block_size=data.n_positions,
+        n_layer=1,
+        dropout=0.1,
+        device="cpu",
+    )
+
+    loss_func = cross_entropy_language_model
+
+    train_config = TrainingConfig(
+        model=model,
+        epochs=2,
+        loss_func=loss_func,
+        training_loader=data.dataloader_train,
+        validation_loader=data.dataloader_validation,
+        optimizer="AdamW",
+        device="gpu",
+        save_model=True,
+        tar_result=True,
+        save_path="runs",
+        model_name="GPT-2",
+        progress_bar=True,
+    )
+
+    train(train_config)
+
+    prompt = "Tom was"
+    output, choices = generate(
+        model,
+        prompt,
+        data.encoder,
+        data.decoder,
+        stop_token_id=stop_token_id,
+        max_n=5,
+        choices_per_step=3,
+    )
+
+    logging.info(f"\n{choices}")
+    logging.info(f"Promt: {prompt}")
+    logging.info(f"Model: {output}")

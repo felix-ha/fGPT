@@ -78,6 +78,8 @@ def test_generate():
 
     prompt = "a b"
 
-    output = generate(model, prompt, encoder, decoder, stop_token_id=4, max_n=10)
+    output, _ = generate(
+        model, prompt, encoder, decoder, stop_token_id=4, max_n=10, choices_per_step=3
+    )
 
     assert output == f"c d a {END_OF_TEXT} "

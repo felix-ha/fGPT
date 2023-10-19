@@ -56,9 +56,15 @@ def test_training(data):
         train(train_config)
 
         prompt = "Alex was cleaning"
-        # TODO fix stop_token_id
-        output = generate(
-            model, prompt, data.encoder, data.decoder, stop_token_id=99, max_n=5
+
+        output, choices = generate(
+            model,
+            prompt,
+            data.encoder,
+            data.decoder,
+            stop_token_id=99,
+            max_n=5,
+            choices_per_step=3,
         )
 
         assert True
