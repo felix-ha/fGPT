@@ -31,7 +31,7 @@ if __name__ == "__main__":
         validation_loader=data.dataloader_validation,
         optimizer="AdamW",
         device="gpu",
-        colab=True, 
+        colab=False, 
         save_model=True,
         tar_result=True,
         save_path="runs",
