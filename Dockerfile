@@ -12,3 +12,5 @@ ADD https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStor
 ADD https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt ./data
 
 COPY . . 
+
+ENTRYPOINT [ "/bin/bash" ]
