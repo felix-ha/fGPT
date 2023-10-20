@@ -3,7 +3,7 @@ logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
 
 from dionysus.training import TrainingConfig, train
 from model import simpleGPT, cross_entropy_language_model, generate
-from data_pipeline import pipline
+from data_pipeline import pipeline
 from constants import *
 
 if __name__ == "__main__":
