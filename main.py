@@ -1,5 +1,6 @@
 import logging
 logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
+import pickle
 
 from dionysus.training import TrainingConfig, train
 from model import simpleGPT, cross_entropy_language_model, generate
@@ -8,6 +9,9 @@ from constants import *
 
 if __name__ == "__main__":
     data = pipeline("data/data_train.txt", "data/data_validation.txt")
+    
+    with open('data.pkl', 'wb') as file: 
+        pickle.dump(data, file)
 
     stop_token_id = data.token_to_int[END_OF_TEXT]
 
