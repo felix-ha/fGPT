@@ -8,4 +8,7 @@ COPY requirements.txt requirements-dev.txt ./
 RUN pip install --upgrade pip
 RUN pip install -r requirements-dev.txt
 
+ADD https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt ./data
+ADD https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt ./data
+
 COPY . . 
