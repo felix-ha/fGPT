@@ -2,6 +2,10 @@
 docker_build:
 	docker build . -t dev-fgpt
 
+.PHONY: docker_run
+docker_run:
+	docker run -it -v $(pwd):/app dev-fgpt
+
 .PHONY: pre_commit
 pre_commit:
 	black . 
