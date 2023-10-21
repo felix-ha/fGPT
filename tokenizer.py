@@ -5,13 +5,19 @@ import logging
 
 
 def split_tokens_raw(corpus: str, delimiters: list[str]) -> list[str]:
+    logging.info("start split_tokens_raw")
     pattern = "|".join(map(re.escape, delimiters))
     pattern = f"({pattern})"
-    return re.split(pattern, corpus)
+    result = re.split(pattern, corpus)
+    logging.info("end split_tokens_raw")
+    return result
 
 
 def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str]:
-    return [token for token in tokens_raw if token not in tokens_to_remove]
+    logging.info("start clean_tokens")
+    result = [token for token in tokens_raw if token not in tokens_to_remove]
+    logging.info("end clean_tokens")
+    return result
 
 
 def string_to_tokens(
@@ -36,6 +42,7 @@ def get_unique_tokens(
     Only keeps the most frequent tokens up to the vocab_size.
     tokens_not_to_filter will be excluded from the filtering.
     """
+    logging.info("start get_unique_tokens")
     token_all_to_filter = [
         token for token in tokens if token not in tokens_not_to_filter
     ]
