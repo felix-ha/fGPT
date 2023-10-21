@@ -4,6 +4,9 @@ import argparse
 
 from data_pipeline import pipeline
 from constants import *
+import wget
+import os
+
 
 if __name__ == "__main__":
 
@@ -17,13 +20,22 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     full_training_data = args.full
-    
-    # TODO: also validate on full dataset
+   
     if full_training_data:
         logging.info("Using full TinyStores dataset.")
-        path = "data/TinyStoriesV2-GPT4-train.txt"
+        path_train = "data/TinyStoriesV2-GPT4-train.txt"
+        path_validation = "data/TinyStoriesV2-GPT4-valid.txt"
+        if not os.path.exists(path_train):
+            logging.info("Downloading full TinyStores training dataset.")
+            url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt"
+            wget.download(url, path_train)
+        if not os.path.exists(path_validation):
+            logging.info("Downloading full TinyStores validation dataset.")
+            url = "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt"
+            wget.download(url, path_validation)
     else:
         logging.info("Using small dev dataset.")
-        path = "data/data_train.txt"
+        path_train = "data/data_train.txt"
+        path_validation = "data/data_validation.txt"
 
-    data = pipeline(path, "data/data_validation.txt")
+    data = pipeline(path_train, path_validation)
