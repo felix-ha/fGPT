@@ -8,7 +8,7 @@ import en_core_web_sm
 
 
 def split_tokens_raw(
-    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 1_000
+    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10_000
 ) -> list[str]:
     infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
