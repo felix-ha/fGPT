@@ -3,17 +3,40 @@ import pandas as pd
 from constants import TOKENS_NOT_TO_FILTER
 import logging
 
-# TODO: This fails
-def split_tokens_raw(corpus: str, delimiters: list[str]) -> list[str]:
+
+def split_tokens_raw(
+    corpus: str, delimiters: list[str], sub_corpus_length: int = 1_000_000
+) -> list[str]:
     logging.info("start split_tokens_raw")
-    logging.info("join")
-    pattern = "|".join(map(re.escape, delimiters))
     logging.info("create pattern")
+    pattern = "|".join(map(re.escape, delimiters))
     pattern = f"({pattern})"
-    logging.info("split")
-    result = re.split(pattern, corpus)
-    logging.info("end split_tokens_raw")
-    return result
+
+    len_corpus = len(corpus)
+
+    if len_corpus < sub_corpus_length:
+        logging.info(
+            f"{len_corpus=} is smaller than {sub_corpus_length=}, processing croupus at once"
+        )
+        return re.split(pattern, corpus)
+    else:
+        logging.warn(
+            f"{len_corpus=} is greater than {sub_corpus_length=}, processing croupus in steps"
+        )
+        logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
+        tokens = []
+        step = len_corpus // sub_corpus_length
+        for i in range(0, len(corpus), step):
+            if i + step > len_corpus:
+                corpus_current = corpus[i:]
+            else:
+                corpus_current = corpus[i : i + step]
+
+            logging.info(f"Split step {i}")
+            tokens_current = re.split(pattern, corpus_current)
+            tokens.extend(tokens_current)
+        logging.info("end split_tokens_raw")
+        return tokens
 
 
 def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str]:
