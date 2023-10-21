@@ -1,5 +1,20 @@
 import logging
-logging.basicConfig(format="%(asctime)s %(message)s", level=logging.INFO)
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+formatter = logging.Formatter("%(asctime)s %(message)s")
+file_handler = logging.FileHandler("log.txt")
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+logger.addHandler(file_handler)
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
+
+
+
+
 import argparse
 
 from data_pipeline import pipeline
@@ -9,6 +24,14 @@ import os
 
 
 if __name__ == "__main__":
+
+    logging.info("This is a test log entry.")
+    logging.info("This is a test log entry.")
+    logging.info("This is a test log entry.")
+    logging.info("This is a test log entry.")
+    logging.info("This is a test log entry.")
+    quit()
+
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
