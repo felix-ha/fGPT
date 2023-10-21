@@ -3,11 +3,14 @@ import pandas as pd
 from constants import TOKENS_NOT_TO_FILTER
 import logging
 
-
+# TODO: This fails
 def split_tokens_raw(corpus: str, delimiters: list[str]) -> list[str]:
     logging.info("start split_tokens_raw")
+    logging.info("join")
     pattern = "|".join(map(re.escape, delimiters))
+    logging.info("create pattern")
     pattern = f"({pattern})"
+    logging.info("split")
     result = re.split(pattern, corpus)
     logging.info("end split_tokens_raw")
     return result

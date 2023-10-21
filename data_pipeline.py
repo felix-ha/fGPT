@@ -35,6 +35,7 @@ def print_unique_characters(corpus: str):
 def replace_characters(corpus, replacment_dict):
     logging.info("start replace_characters")
     for char, replacement in replacment_dict.items():
+        logging.info(f"replace {char} with {replacement}")
         corpus = corpus.replace(char, replacement)
     logging.info("end replace_characters")
     return corpus
