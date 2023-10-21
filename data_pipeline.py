@@ -13,6 +13,7 @@ from tokenizer import (
     create_decoder,
 )
 from data_prep import (
+    load_file,
     split_corpus,
     texts_to_input_ids,
     collate_fn,
@@ -68,11 +69,7 @@ def pipeline(file_path_train, file_path_validation):
 
     # Create vocabular, i. e. token <-> int mappings^
     logging.info("start reading file")
-    corpus_train_raw_lines = []
-    with open(file_path_train, "r", encoding="utf8") as file:
-        for line in file:
-            corpus_train_raw_lines.append(line)
-    corpus_train_raw = " ".join(corpus_train_raw_lines)
+    corpus_train_raw = load_file(file_path_train)
     logging.info("read file")
 
     print_unique_characters(corpus_train_raw)
