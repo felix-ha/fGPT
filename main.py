@@ -12,9 +12,6 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
-
-
-
 import argparse
 
 from data_pipeline import pipeline
@@ -24,15 +21,6 @@ import os
 
 
 if __name__ == "__main__":
-
-    logging.info("This is a test log entry.")
-    logging.info("This is a test log entry.")
-    logging.info("This is a test log entry.")
-    logging.info("This is a test log entry.")
-    logging.info("This is a test log entry.")
-    quit()
-
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--full",
@@ -43,7 +31,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     full_training_data = args.full
-   
+
     if full_training_data:
         logging.info("Using full TinyStores dataset.")
         path_train = "data/TinyStoriesV2-GPT4-train.txt"
