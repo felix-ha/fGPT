@@ -118,3 +118,18 @@ def test_dataloader_last_batch():
         x, y = batch
     assert torch.equal(x, torch.tensor([[1, 2, 3, 4, 5, 6]]))
     assert torch.equal(y, torch.tensor([[2, 3, 4, 5, 6, END_OF_TEXT_ID]]))
+
+
+@pytest.mark.skip()
+def test_load_text_file():
+    file_path_train = "./data/data_train.txt"
+    with open(file_path_train, "r", encoding="utf8") as file:
+        corpus_train_raw = file.read()
+
+    corpus_train_raw_lines = []
+    with open(file_path_train, "r", encoding="utf8") as file:
+        for line in file:
+            corpus_train_raw_lines.append(line)
+    corpus_train_raw_lines_full = " ".join(corpus_train_raw_lines)
+
+    assert corpus_train_raw == corpus_train_raw_lines_full

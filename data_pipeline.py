@@ -67,8 +67,12 @@ def pipeline(file_path_train, file_path_validation):
     start_time = time.perf_counter()
 
     # Create vocabular, i. e. token <-> int mappings
+    corpus_train_raw_lines = []
     with open(file_path_train, "r", encoding="utf8") as file:
-        corpus_train_raw = file.read()
+        for line in file:
+            corpus_train_raw_lines.append(line)
+    corpus_train_raw = " ".join(corpus_train_raw_lines)
+
     print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
     tokens_raw = split_tokens_raw(corpus_train_clean, DELIMTERS)
