@@ -5,7 +5,7 @@ import logging
 
 
 def split_tokens_raw(
-    corpus: str, delimiters: list[str], number_splits_for_sub_corpus: int = 100
+    corpus: str, delimiters: list[str], number_splits_for_sub_corpus: int = 250
 ) -> list[str]:
     logging.info("start split_tokens_raw")
     logging.info("create pattern")
@@ -34,6 +34,7 @@ def split_tokens_raw(
 
             logging.info(f"Split step {i}")
             tokens_current = re.split(pattern, corpus_current)
+            logging.info(f"append to result")
             tokens.extend(tokens_current)
         logging.info("end split_tokens_raw")
         return tokens
