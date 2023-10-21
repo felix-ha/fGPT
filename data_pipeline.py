@@ -83,7 +83,7 @@ def pipeline(file_path_train, file_path_validation, ratio=1.0, number_splits_for
     token_to_int, int_to_token = create_token_to_int_dicts(tokens_unique, UNK)
     vocab_size = len(int_to_token)
     logging.info(f"Size of vocabulary: {vocab_size}")
-    quit()
+  
 
     encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
     decoder = create_decoder(int_to_token)
@@ -96,6 +96,8 @@ def pipeline(file_path_train, file_path_validation, ratio=1.0, number_splits_for
         corpus_validation_raw = file.read()
     texts_validation = split_corpus(corpus_validation_raw, END_OF_TEXT)
 
+
+    quit()
     # Convert texts to input IDs
     texts_ids_train = texts_to_input_ids(texts_train, encoder)
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
