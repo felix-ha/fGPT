@@ -5,7 +5,7 @@ import logging
 
 
 def split_tokens_raw(
-    corpus: str, delimiters: list[str], sub_corpus_length: int = 1_000_000_000
+    corpus: str, delimiters: list[str], number_splits_for_sub_corpus: int = 100
 ) -> list[str]:
     logging.info("start split_tokens_raw")
     logging.info("create pattern")
@@ -13,19 +13,19 @@ def split_tokens_raw(
     pattern = f"({pattern})"
 
     len_corpus = len(corpus)
+    step = len_corpus // number_splits_for_sub_corpus
 
-    if len_corpus < sub_corpus_length:
+    if len_corpus < 1_000_000:
         logging.info(
-            f"{len_corpus=} is smaller than {sub_corpus_length=}, processing croupus at once"
+            f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
         )
         return re.split(pattern, corpus)
     else:
         logging.warn(
-            f"{len_corpus=} is greater than {sub_corpus_length=}, processing croupus in steps"
+            f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
         )
         logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
         tokens = []
-        step = len_corpus // sub_corpus_length
         for i in range(0, len(corpus), step):
             if i + step > len_corpus:
                 corpus_current = corpus[i:]
