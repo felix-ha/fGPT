@@ -97,9 +97,10 @@ def pipeline(file_path_train, file_path_validation, ratio=1.0, number_splits_for
     texts_validation = split_corpus(corpus_validation_raw, END_OF_TEXT)
 
 
-    quit()
+
     # Convert texts to input IDs
     texts_ids_train = texts_to_input_ids(texts_train, encoder)
+    quit()
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
 
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
