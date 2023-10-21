@@ -7,7 +7,9 @@ from spacy.tokenizer import Tokenizer
 import en_core_web_sm
 
 
-def split_tokens_raw(corpus: str, delimiters: list[str] = None) -> list[str]:
+def split_tokens_raw(
+    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10
+) -> list[str]:
     infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
     def custom_tokenizer(nlp):
@@ -15,10 +17,33 @@ def split_tokens_raw(corpus: str, delimiters: list[str] = None) -> list[str]:
 
     nlp = en_core_web_sm.load()
     nlp.tokenizer = custom_tokenizer(nlp)
-    nlp.max_length = 2_500_000_000
-    tokens = [t.text for t in nlp(corpus)]
 
-    return tokens
+    len_corpus = len(corpus)
+    step = len_corpus // number_splits_for_sub_corpus
+
+    if len_corpus < 1_000_000:
+        logging.info(
+            f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
+        )
+        return [t.text for t in nlp(corpus)]
+    else:
+        logging.warn(
+            f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
+        )
+        logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
+        tokens = []
+        for i in range(0, len(corpus), step):
+            if i + step > len_corpus:
+                corpus_current = corpus[i:]
+            else:
+                corpus_current = corpus[i : i + step]
+
+            logging.info(f"Split step {i}")
+            tokens_current = [t.text for t in nlp(corpus_current)]
+            logging.info(f"append to result")
+            tokens.extend(tokens_current)
+        logging.info("end split_tokens_raw")
+        return tokens
 
 
 def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str]:
