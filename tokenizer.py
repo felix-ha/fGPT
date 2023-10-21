@@ -26,7 +26,7 @@ def split_tokens_raw(
         logging.info(
             f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
         )
-        return [t.text for t in nlp(corpus_current)]
+        return [t.text for t in nlp(corpus)]
     else:
         logging.warn(
             f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
