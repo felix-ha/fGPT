@@ -8,7 +8,7 @@ import en_core_web_sm
 
 
 def split_tokens_raw(
-    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10
+    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 1_000
 ) -> list[str]:
     infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
@@ -25,7 +25,7 @@ def split_tokens_raw(
         logging.info(
             f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
         )
-        return [t.text for t in nlp(corpus)]
+        return [t.text for t in nlp(corpus_current)]
     else:
         logging.warn(
             f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
