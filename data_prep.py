@@ -3,6 +3,14 @@ from torch.utils.data import Dataset, DataLoader
 from constants import PADDING_ID
 
 
+def load_file(path):
+    lines = []
+    with open(path, "r") as file:
+        for line in file:
+            lines.append(line.strip() + "\n")
+    return "".join(lines)
+
+
 def split_corpus(corpus: str, end_of_text_token: str) -> list:
     """
     Split corpus into sentences according to end_of_text_token.

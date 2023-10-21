@@ -1,6 +1,7 @@
 import pytest
 import torch
 from data_prep import (
+    load_file,
     split_corpus,
     texts_to_input_ids,
     input_ids_to_tensor,
@@ -14,6 +15,25 @@ END_OF_TEXT = "<|endoftext|>"
 UNK = "<|unk|>"
 END_OF_TEXT_ID = 99
 PADDING_ID = 0
+
+
+def test_load_data():
+    path = "data/data_prep_1.txt"
+
+    # join all lines into one string
+    content_actual = load_file(path)
+    print(content_actual)
+
+    content_expected = """This is a test.
+<|endoftext|>
+This is a test.
+<|endoftext|>
+
+This is a test.
+<|endoftext|> This is a test.
+<|endoftext|>This is a test. <|endoftext|>This is a test.<|endoftext|>
+"""
+    assert content_actual == content_expected
 
 
 def test_split_corpus():
