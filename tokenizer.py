@@ -15,6 +15,7 @@ def split_tokens_raw(corpus: str, delimiters: list[str] = None) -> list[str]:
 
     nlp = en_core_web_sm.load()
     nlp.tokenizer = custom_tokenizer(nlp)
+    nlp.max_length = 2_500_000_000
     tokens = [t.text for t in nlp(corpus)]
 
     return tokens
