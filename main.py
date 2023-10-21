@@ -28,11 +28,19 @@ if __name__ == "__main__":
         action="store_true",
         help="Use full TinyStores dataset instead of the small one.",
     )
+    # add float argument ratio
+    parser.add_argument(
+        "--ratio",
+        default=1.0,
+        type=float,
+        help="Ratio of the data to use for training.",
+    )
+
+
     args = parser.parse_args()
 
-    full_training_data = args.full
 
-    if full_training_data:
+    if args.full:
         logging.info("Using full TinyStores dataset.")
         path_train = "data/TinyStoriesV2-GPT4-train.txt"
         path_validation = "data/TinyStoriesV2-GPT4-valid.txt"
@@ -49,4 +57,4 @@ if __name__ == "__main__":
         path_train = "data/data_train.txt"
         path_validation = "data/data_validation.txt"
 
-    data = pipeline(path_train, path_validation)
+    data = pipeline(path_train, path_validation, args.ratio)

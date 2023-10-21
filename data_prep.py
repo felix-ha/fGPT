@@ -3,12 +3,13 @@ from torch.utils.data import Dataset, DataLoader
 from constants import PADDING_ID
 
 
-def load_file(path):
+def load_file(path, ratio):
     lines = []
     with open(path, "r") as file:
         for line in file:
             lines.append(line.strip() + "\n")
-    return "".join(lines)
+    result = "".join(lines)
+    return result[0: int(len(result) * ratio)]
 
 
 def split_corpus(corpus: str, end_of_text_token: str) -> list:

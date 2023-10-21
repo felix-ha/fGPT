@@ -67,12 +67,12 @@ class Data:
     dataloader_validation: torch.utils.data.DataLoader
 
 
-def pipeline(file_path_train, file_path_validation):
+def pipeline(file_path_train, file_path_validation, ratio=1.0):
     start_time = time.perf_counter()
 
     # Create vocabular, i. e. token <-> int mappings^
     logging.info("start reading file")
-    corpus_train_raw = load_file(file_path_train)
+    corpus_train_raw = load_file(file_path_train, ratio)
     logging.info("read file")
 
     print_unique_characters(corpus_train_raw)
