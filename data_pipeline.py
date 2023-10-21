@@ -66,12 +66,14 @@ class Data:
 def pipeline(file_path_train, file_path_validation):
     start_time = time.perf_counter()
 
-    # Create vocabular, i. e. token <-> int mappings
+    # Create vocabular, i. e. token <-> int mappings^
+    logging.info("start reading file")
     corpus_train_raw_lines = []
     with open(file_path_train, "r", encoding="utf8") as file:
         for line in file:
             corpus_train_raw_lines.append(line)
     corpus_train_raw = " ".join(corpus_train_raw_lines)
+    logging.info("read file")
 
     print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
