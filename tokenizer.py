@@ -2,42 +2,22 @@ import re
 import pandas as pd
 from constants import TOKENS_NOT_TO_FILTER
 import logging
+import re
+from spacy.tokenizer import Tokenizer
+import en_core_web_sm
 
 
-def split_tokens_raw(
-    corpus: str, delimiters: list[str], number_splits_for_sub_corpus: int = 250
-) -> list[str]:
-    logging.info("start split_tokens_raw")
-    logging.info("create pattern")
-    pattern = "|".join(map(re.escape, delimiters))
-    pattern = f"({pattern})"
+def split_tokens_raw(corpus: str, delimiters: list[str] = None) -> list[str]:
+    infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
-    len_corpus = len(corpus)
-    step = len_corpus // number_splits_for_sub_corpus
+    def custom_tokenizer(nlp):
+        return Tokenizer(nlp.vocab, infix_finditer=infix_re.finditer)
 
-    if len_corpus < 1_000_000:
-        logging.info(
-            f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
-        )
-        return re.split(pattern, corpus)
-    else:
-        logging.warn(
-            f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
-        )
-        logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
-        tokens = []
-        for i in range(0, len(corpus), step):
-            if i + step > len_corpus:
-                corpus_current = corpus[i:]
-            else:
-                corpus_current = corpus[i : i + step]
+    nlp = en_core_web_sm.load()
+    nlp.tokenizer = custom_tokenizer(nlp)
+    tokens = [t.text for t in nlp(corpus)]
 
-            logging.info(f"Split step {i}")
-            tokens_current = re.split(pattern, corpus_current)
-            logging.info(f"append to result")
-            tokens.extend(tokens_current)
-        logging.info("end split_tokens_raw")
-        return tokens
+    return tokens
 
 
 def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str]:
