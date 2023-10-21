@@ -82,10 +82,11 @@ def pipeline(file_path_train, file_path_validation, ratio=1.0, number_splits_for
     tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
     token_to_int, int_to_token = create_token_to_int_dicts(tokens_unique, UNK)
     vocab_size = len(int_to_token)
+    logging.info(f"Size of vocabulary: {vocab_size}")
+    quit()
+
     encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
     decoder = create_decoder(int_to_token)
-
-    logging.info(f"Size of vocabulary: {vocab_size}")
 
     # Split whole corpus after character replacments in CHARACTER_REPLACEMENTS accoring to END_OF_TEXT token
     texts_train = split_corpus(corpus_train_clean, END_OF_TEXT)
