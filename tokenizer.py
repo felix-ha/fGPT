@@ -10,6 +10,7 @@ import en_core_web_sm
 def split_tokens_raw(
     corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10_000
 ) -> list[str]:
+    logging.info("start split_tokens_raw")
     infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
     def custom_tokenizer(nlp):
@@ -33,12 +34,14 @@ def split_tokens_raw(
         logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
         tokens = []
         for i in range(0, len(corpus), step):
-            if i + step > len_corpus:
-                corpus_current = corpus[i:]
-            else:
-                corpus_current = corpus[i : i + step]
-
-            logging.info(f"Split step {i}")
+            start = i
+            end = i + step
+            if end > len_corpus:
+                corpus_current = corpus[start:]
+            else:               
+                corpus_current = corpus[start:end]
+                
+            logging.info(f"Split step {start}:{end}")
             tokens_current = [t.text for t in nlp(corpus_current)]
             logging.info(f"append to result")
             tokens.extend(tokens_current)

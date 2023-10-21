@@ -78,6 +78,7 @@ def pipeline(file_path_train, file_path_validation):
     print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
     tokens_raw = split_tokens_raw(corpus_train_clean, DELIMTERS)
+    quit()
     tokens_all = clean_tokens(tokens_raw, TOKEN_TO_REMOVE)
     tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
     token_to_int, int_to_token = create_token_to_int_dicts(tokens_unique, UNK)
