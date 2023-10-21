@@ -5,7 +5,7 @@ import logging
 
 
 def split_tokens_raw(
-    corpus: str, delimiters: list[str], sub_corpus_length: int = 1_000_000
+    corpus: str, delimiters: list[str], sub_corpus_length: int = 10_000_000
 ) -> list[str]:
     logging.info("start split_tokens_raw")
     logging.info("create pattern")
