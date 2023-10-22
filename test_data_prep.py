@@ -7,13 +7,13 @@ from data_prep import (
     split_corpus,
     texts_to_input_ids,
     input_ids_to_tensor,
-    LanguageModelDataset,
     collate_fn,
     write_to_json,
     read_from_json,
     get_token_int_dicts,
 )
 from torch.utils.data import DataLoader
+from model import LanguageModelDataset
 from tokenizer import create_encoder
 
 

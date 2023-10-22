@@ -8,11 +8,16 @@ import os
 import tempfile
 from data_pipeline import pipeline
 from dionysus.training import TrainingConfig, train
-from model import simpleGPT, cross_entropy_language_model, generate
+from model import (
+    LanguageModelDataset,
+    simpleGPT,
+    cross_entropy_language_model,
+    generate,
+)
 from data_prep import read_from_json, get_token_int_dicts
 from constants import *
 from torch.utils.data import DataLoader
-from data_prep import LanguageModelDataset, collate_fn
+from data_prep import collate_fn
 from tokenizer import create_encoder, create_decoder
 
 

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
+from torch.utils.data import Dataset
 
 
 class Head(nn.Module):
@@ -151,3 +152,16 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
 
     response_ids = x_input[:, response_idx:]
     return decoder(response_ids.flatten().tolist()), pd.DataFrame(iterations)
+
+
+class LanguageModelDataset(Dataset):
+    def __init__(self, input_ids: list[list[int]]):
+        super(LanguageModelDataset, self).__init__()
+        self.input_ids = input_ids
+
+    def __len__(self):
+        return len(self.input_ids)
+
+    # slicing is not implemented
+    def __getitem__(self, idx):
+        return self.input_ids[idx][:-1], self.input_ids[idx][1:]

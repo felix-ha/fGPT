@@ -1,0 +1,6 @@
+numpy>=1.23.2
+pandas==2.1.1
+tqdm==4.66.1
+spacy==3.7.2
+tqdm==4.66.1
+wget==3.2

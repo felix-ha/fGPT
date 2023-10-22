@@ -1,5 +1,4 @@
 import torch
-from torch.utils.data import Dataset
 from constants import PADDING_ID
 import json
 from tqdm import tqdm
@@ -75,16 +74,3 @@ def input_ids_to_tensor(
 def collate_fn(batch):
     x, y = zip(*batch)
     return input_ids_to_tensor(x), input_ids_to_tensor(y)
-
-
-class LanguageModelDataset(Dataset):
-    def __init__(self, input_ids: list[list[int]]):
-        super(LanguageModelDataset, self).__init__()
-        self.input_ids = input_ids
-
-    def __len__(self):
-        return len(self.input_ids)
-
-    # slicing is not implemented
-    def __getitem__(self, idx):
-        return self.input_ids[idx][:-1], self.input_ids[idx][1:]

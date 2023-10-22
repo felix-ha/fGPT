@@ -19,7 +19,7 @@ from constants import *
 import wget
 import os
 from torch.utils.data import DataLoader
-from data_prep import LanguageModelDataset, collate_fn
+from data_prep import collate_fn
 from tokenizer import (
     create_encoder,
     create_decoder,
@@ -27,7 +27,12 @@ from tokenizer import (
 from data_prep import read_from_json, get_token_int_dicts
 
 from dionysus.training import TrainingConfig, train
-from model import simpleGPT, cross_entropy_language_model, generate
+from model import (
+    LanguageModelDataset,
+    simpleGPT,
+    cross_entropy_language_model,
+    generate,
+)
 
 
 if __name__ == "__main__":

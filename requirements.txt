@@ -1,11 +1,7 @@
-numpy>=1.23.2
-pandas==2.1.1
+-r requirements-data.txt
 matplotlib==3.7.1
 seaborn==0.12.2
 scikit-learn==1.2.2
 torch==2.1.0
 transformers==4.34.0
 dionysus-trainer==0.1.0
-wget==3.2
-tqdm==4.66.1
-```
