@@ -1,15 +1,37 @@
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 from constants import PADDING_ID
+import json
+from tqdm import tqdm
+from pathlib import Path
+
+
+def write_to_json(data, path):
+    json_string = json.dumps(data)
+    with open(path, "w") as f:
+        f.write(json_string)
+
+
+def read_from_json(path):
+    with open(path, "r") as f:
+        json_string = f.read()
+    return json.loads(json_string)
+
+
+def get_token_int_dicts(path):
+    token_to_int = read_from_json(Path(path).joinpath("token_to_int.json"))
+    int_to_token = read_from_json(Path(path).joinpath("int_to_token.json"))
+    int_to_token = {int(k): v for k, v in int_to_token.items()}
+    return token_to_int, int_to_token
 
 
 def load_file(path, ratio):
     lines = []
-    with open(path, "r") as file:
+    with open(path, "r", encoding="utf8") as file:
         for line in file:
             lines.append(line.strip() + "\n")
     result = "".join(lines)
-    return result[0: int(len(result) * ratio)]
+    return result[0 : int(len(result) * ratio)]
 
 
 def split_corpus(corpus: str, end_of_text_token: str) -> list:
@@ -27,7 +49,9 @@ def texts_to_input_ids(texts: list[str], encoder: callable) -> list[list[int]]:
     """
     Convert a list of texts to a list of lists of input IDs.
     """
-    input_ids = [encoder(text) for text in texts]
+    input_ids = []
+    for text in tqdm(texts):
+        input_ids.append(encoder(text))
     return input_ids
 
 

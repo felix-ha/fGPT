@@ -1,5 +1,7 @@
 import pytest
 import torch
+import tempfile
+from pathlib import Path
 from data_prep import (
     load_file,
     split_corpus,
@@ -7,9 +9,13 @@ from data_prep import (
     input_ids_to_tensor,
     LanguageModelDataset,
     collate_fn,
+    write_to_json,
+    read_from_json,
+    get_token_int_dicts,
 )
 from torch.utils.data import DataLoader
 from tokenizer import create_encoder
+
 
 END_OF_TEXT = "<|endoftext|>"
 UNK = "<|unk|>"
@@ -17,11 +23,46 @@ END_OF_TEXT_ID = 99
 PADDING_ID = 0
 
 
+def test_serialize_deserialize_texts_id():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = Path(temp_dir)
+        texts_ids_train = [[1, 2, 3], [4, 5, 6]]
+        texts_ids_validation = [[7, 8, 9], [10, 11, 12]]
+
+        write_to_json(texts_ids_train, temp_dir.joinpath("texts_ids_train.json"))
+        texts_ids_train_read = read_from_json(temp_dir.joinpath("texts_ids_train.json"))
+
+        write_to_json(
+            texts_ids_validation, temp_dir.joinpath("texts_ids_validation.json")
+        )
+        texts_ids_validation_read = read_from_json(
+            temp_dir.joinpath("texts_ids_validation.json")
+        )
+
+        assert texts_ids_train == texts_ids_train_read
+        assert texts_ids_validation == texts_ids_validation_read
+
+
+def test_serialize_deserialize_token_int_dicts():
+    with tempfile.TemporaryDirectory() as temp_dir:
+        temp_dir = Path(temp_dir)
+        token_to_int = {"A": 0, "B": 1}
+        int_to_token = {0: "A", 1: "B"}
+
+        write_to_json(token_to_int, temp_dir.joinpath("token_to_int.json"))
+        write_to_json(int_to_token, temp_dir.joinpath("int_to_token.json"))
+
+        token_to_int_read, int_to_token_read = get_token_int_dicts(temp_dir)
+
+        assert token_to_int == token_to_int_read
+        assert int_to_token == int_to_token_read
+
+
 def test_load_data():
     path = "data/data_prep_1.txt"
 
     # join all lines into one string
-    content_actual = load_file(path)
+    content_actual = load_file(path, ratio=1.0)
     print(content_actual)
 
     content_expected = """This is a test.

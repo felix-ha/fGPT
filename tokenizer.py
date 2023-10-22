@@ -7,10 +7,11 @@ from spacy.tokenizer import Tokenizer
 import en_core_web_sm
 
 
+# TODO: implement spacy tokenizer
 def split_tokens_raw(
     corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10
 ) -> list[str]:
-    logging.info("start split_tokens_raw")
+    logging.debug("start split_tokens_raw")
     infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
     def custom_tokenizer(nlp):
@@ -23,7 +24,7 @@ def split_tokens_raw(
     step = len_corpus // number_splits_for_sub_corpus
 
     if len_corpus < 1_000_000:
-        logging.info(
+        logging.debug(
             f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
         )
         return [t.text for t in nlp(corpus)]
@@ -38,21 +39,21 @@ def split_tokens_raw(
             end = i + step
             if end > len_corpus:
                 corpus_current = corpus[start:]
-            else:               
+            else:
                 corpus_current = corpus[start:end]
-                
-            logging.info(f"Split step {start}:{end}")
+
+            logging.debug(f"Split step {start}:{end}")
             tokens_current = [t.text for t in nlp(corpus_current)]
-            logging.info(f"append to result")
+            logging.debug(f"append to result")
             tokens.extend(tokens_current)
-        logging.info("end split_tokens_raw")
+        logging.debug("end split_tokens_raw")
         return tokens
 
 
 def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str]:
-    logging.info("start clean_tokens")
+    logging.debug("start clean_tokens")
     result = [token for token in tokens_raw if token not in tokens_to_remove]
-    logging.info("end clean_tokens")
+    logging.debug("end clean_tokens")
     return result
 
 

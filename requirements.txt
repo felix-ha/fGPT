@@ -7,3 +7,5 @@ torch==2.1.0
 transformers==4.34.0
 dionysus-trainer==0.1.0
 wget==3.2
+tqdm==4.66.1
+```

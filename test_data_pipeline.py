@@ -4,67 +4,104 @@ As a final test, the output will be fed into the transformer.
 """
 
 import pytest
+import os
 import tempfile
 from data_pipeline import pipeline
 from dionysus.training import TrainingConfig, train
 from model import simpleGPT, cross_entropy_language_model, generate
+from data_prep import read_from_json, get_token_int_dicts
+from constants import *
+from torch.utils.data import DataLoader
+from data_prep import LanguageModelDataset, collate_fn
+from tokenizer import create_encoder, create_decoder
 
 
-@pytest.fixture
-def data():
-    value = pipeline("data/data_train.txt", "data/data_validation.txt")
-    yield value
+with tempfile.TemporaryDirectory() as path_data:
 
+    @pytest.fixture
+    def data():
+        pipeline("data/data_train.txt", "data/data_validation.txt", path_data)
 
-@pytest.mark.dependency()
-def test_data_pipeline(data):
-    assert data.n_positions == 9
-    assert len(data.dataloader_train) == 3
-    assert len(data.dataloader_validation) == 2
+    def test_training(data):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            token_to_int, int_to_token = get_token_int_dicts(path_data)
+            texts_ids_train = read_from_json(
+                os.path.join(path_data, "texts_ids_train.json")
+            )
+            texts_ids_validation = read_from_json(
+                os.path.join(path_data, "texts_ids_validation.json")
+            )
 
+            vocab_size = len(int_to_token)
+            n_positions = max([len(text_ids) for text_ids in texts_ids_train])
 
-@pytest.mark.dependency(depends=["test_data_pipeline"])
-def test_training(data):
-    with tempfile.TemporaryDirectory() as temp_dir:
-        model = simpleGPT(
-            data.vocab_size,
-            n_embd=10,
-            num_heads=2,
-            block_size=data.n_positions,
-            n_layer=2,
-            dropout=0.1,
-            device="cpu",
-        )
+            assert len(token_to_int) == 27
+            assert len(int_to_token) == 27
+            assert len(texts_ids_train) == 5
+            assert len(texts_ids_validation) == 3
 
-        loss_func = cross_entropy_language_model
+            assert n_positions == 9
+            assert vocab_size == 27
 
-        train_config = TrainingConfig(
-            model=model,
-            epochs=5,
-            loss_func=loss_func,
-            training_loader=data.dataloader_train,
-            validation_loader=data.dataloader_validation,
-            optimizer="AdamW",
-            device="gpu",
-            save_model=True,
-            tar_result=True,
-            save_path=temp_dir,
-            model_name="GPT-2",
-            progress_bar=False,
-        )
+            device = "cpu"
 
-        train(train_config)
+            encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
+            decoder = create_decoder(int_to_token)
 
-        prompt = "Alex was cleaning"
+            dataset_train = LanguageModelDataset(texts_ids_train)
+            dataset_validation = LanguageModelDataset(texts_ids_validation)
 
-        output, choices = generate(
-            model,
-            prompt,
-            data.encoder,
-            data.decoder,
-            stop_token_id=99,
-            max_n=5,
-            choices_per_step=3,
-        )
+            dataloader_train = DataLoader(
+                dataset_train, batch_size=2, shuffle=True, collate_fn=collate_fn
+            )
+            dataloader_validation = DataLoader(
+                dataset_validation, batch_size=2, shuffle=False, collate_fn=collate_fn
+            )
 
-        assert True
+            assert len(dataloader_train) == 3
+            assert len(dataloader_validation) == 2
+
+            stop_token_id = token_to_int[END_OF_TEXT]
+
+            model = simpleGPT(
+                vocab_size=vocab_size,
+                n_embd=8,
+                num_heads=4,
+                block_size=n_positions,
+                n_layer=2,
+                dropout=0.1,
+                device=device,
+            )
+
+            loss_func = cross_entropy_language_model
+
+            train_config = TrainingConfig(
+                model=model,
+                epochs=2,
+                loss_func=loss_func,
+                training_loader=dataloader_train,
+                validation_loader=dataloader_validation,
+                optimizer="AdamW",
+                device=device,
+                colab=False,
+                save_model=True,
+                tar_result=True,
+                save_path=temp_dir,
+                model_name="GPT-2",
+                progress_bar=True,
+            )
+
+            train(train_config)
+
+            prompt = "Tom was"
+            output, choices = generate(
+                model,
+                prompt,
+                encoder,
+                decoder,
+                stop_token_id=stop_token_id,
+                max_n=5,
+                choices_per_step=3,
+            )
+
+            assert choices.shape[1] == 4
