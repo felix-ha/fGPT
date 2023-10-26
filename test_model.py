@@ -70,7 +70,7 @@ def test_generate():
     token_to_index = {"a": 0, "b": 1, "c": 2, "d": 3, END_OF_TEXT: 4, UNK: 5}
     index_to_token = {v: k for k, v in token_to_index.items()}
     encoder = create_encoder(
-        token_to_index, delimiters=[" "], tokens_to_remove=[" "], unk=UNK
+        token_to_index, END_OF_TEXT, tokens_to_remove=[" "], unk=UNK
     )
     decoder = create_decoder(index_to_token)
 

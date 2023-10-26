@@ -63,15 +63,17 @@ def pipeline(
     print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
     tokens_raw = split_tokens_raw(
-        corpus_train_clean, DELIMTERS, number_splits_for_sub_corpus
+        corpus_train_clean, END_OF_TEXT, number_splits_for_sub_corpus
     )
     tokens_all = clean_tokens(tokens_raw, TOKEN_TO_REMOVE)
     tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
-    token_to_int, int_to_token = create_token_to_int_dicts(tokens_unique, UNK)
+    token_to_int, int_to_token = create_token_to_int_dicts(
+        tokens_unique, UNK, END_OF_TEXT
+    )
     vocab_size = len(int_to_token)
     logging.info(f"Size of vocabulary: {vocab_size}")
 
-    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
+    encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
 
     # Split whole corpus after character replacments in CHARACTER_REPLACEMENTS accoring to END_OF_TEXT token
     texts_train = split_corpus(corpus_train_clean, END_OF_TEXT)

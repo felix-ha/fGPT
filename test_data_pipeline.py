@@ -40,17 +40,17 @@ with tempfile.TemporaryDirectory() as path_data:
             vocab_size = len(int_to_token)
             n_positions = max([len(text_ids) for text_ids in texts_ids_train])
 
-            assert len(token_to_int) == 27
-            assert len(int_to_token) == 27
+            assert len(token_to_int) == 25
+            assert len(int_to_token) == 25
             assert len(texts_ids_train) == 5
             assert len(texts_ids_validation) == 3
 
-            assert n_positions == 9
-            assert vocab_size == 27
+            assert n_positions == 8
+            assert vocab_size == 25
 
             device = "cpu"
 
-            encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
+            encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
             decoder = create_decoder(int_to_token)
 
             dataset_train = LanguageModelDataset(texts_ids_train)
@@ -105,7 +105,7 @@ with tempfile.TemporaryDirectory() as path_data:
                 encoder,
                 decoder,
                 stop_token_id=stop_token_id,
-                max_n=5,
+                max_n=3,
                 choices_per_step=3,
             )
 

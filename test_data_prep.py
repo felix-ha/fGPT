@@ -87,10 +87,8 @@ def test_split_corpus():
 
 
 def test_texts_to_input_ids():
-    token_to_int = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, UNK: 5}
-    encoder = create_encoder(
-        token_to_int, delimiters=[" "], tokens_to_remove=[" "], unk=UNK
-    )
+    token_to_int = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, UNK: 5, END_OF_TEXT: 6}
+    encoder = create_encoder(token_to_int, END_OF_TEXT, tokens_to_remove=[" "], unk=UNK)
     input = ["A B C", "C B A", "A B C D E", "E D A B C"]
     text_ids_actual = texts_to_input_ids(input, encoder)
     text_ids_expected = [[0, 1, 2], [2, 1, 0], [0, 1, 2, 3, 4], [4, 3, 0, 1, 2]]

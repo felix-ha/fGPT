@@ -1,25 +1,21 @@
 import re
 import pandas as pd
-from constants import TOKENS_NOT_TO_FILTER
+from constants import TOKENS_NOT_TO_FILTER, END_OF_TEXT
 import logging
 import re
-from spacy.tokenizer import Tokenizer
-import en_core_web_sm
+import spacy
+from spacy.lang.en import English
 
 
-# TODO: implement spacy tokenizer
 def split_tokens_raw(
-    corpus: str, delimiters: list[str] = None, number_splits_for_sub_corpus: int = 10
+    corpus: str, end_of_text_token=END_OF_TEXT, number_splits_for_sub_corpus: int = 10
 ) -> list[str]:
     logging.debug("start split_tokens_raw")
-    infix_re = re.compile(r"""[\(]|[.]""")  # it would split either on ( or .
 
-    def custom_tokenizer(nlp):
-        return Tokenizer(nlp.vocab, infix_finditer=infix_re.finditer)
+    nlp = English()
+    tokenizer = nlp.tokenizer
 
-    nlp = en_core_web_sm.load()
-    nlp.tokenizer = custom_tokenizer(nlp)
-
+    corpus = corpus.replace(end_of_text_token, "")
     len_corpus = len(corpus)
     step = len_corpus // number_splits_for_sub_corpus
 
@@ -27,7 +23,7 @@ def split_tokens_raw(
         logging.debug(
             f"{len_corpus=} is smaller than 1_000_000, processing croupus at once"
         )
-        return [t.text for t in nlp(corpus)]
+        return [t.text for t in tokenizer(corpus)]
     else:
         logging.warn(
             f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
@@ -43,7 +39,7 @@ def split_tokens_raw(
                 corpus_current = corpus[start:end]
 
             logging.debug(f"Split step {start}:{end}")
-            tokens_current = [t.text for t in nlp(corpus_current)]
+            tokens_current = [t.text for t in tokenizer(corpus_current)]
             logging.debug(f"append to result")
             tokens.extend(tokens_current)
         logging.debug("end split_tokens_raw")
@@ -58,13 +54,13 @@ def clean_tokens(tokens_raw: list[str], tokens_to_remove: list[str]) -> list[str
 
 
 def string_to_tokens(
-    string: str, delimiters: list[str], tokens_to_remove: list[str]
+    string: str, end_of_text_token: str, tokens_to_remove: list[str]
 ) -> list[str]:
     """
     Combination of split_tokens_raw and clean_tokens.
     Util func for create_encoder
     """
-    tokens_raw = split_tokens_raw(string, delimiters)
+    tokens_raw = split_tokens_raw(string, end_of_text_token)
     tokens = clean_tokens(tokens_raw, tokens_to_remove)
     return tokens
 
@@ -98,18 +94,19 @@ def get_unique_tokens(
 
 
 def create_token_to_int_dicts(
-    tokens: list[str], unk
+    tokens: list[str], unk, end_of_text_token
 ) -> tuple[dict[str, int], dict[int, str]]:
     token_to_int = {token: i for i, token in enumerate(tokens)}
     token_to_int[unk] = len(token_to_int)
+    token_to_int[end_of_text_token] = len(token_to_int)
     int_to_token = {i: token for token, i in token_to_int.items()}
     return token_to_int, int_to_token
 
 
-def create_encoder(token_to_index, delimiters, tokens_to_remove, unk):
+def create_encoder(token_to_index, end_of_text_token, tokens_to_remove, unk):
     return lambda string: [
         token_to_index.get(char, token_to_index[unk])
-        for char in string_to_tokens(string, delimiters, tokens_to_remove)
+        for char in string_to_tokens(string, end_of_text_token, tokens_to_remove)
     ]
 
 

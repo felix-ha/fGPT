@@ -1,7 +1,7 @@
 CHARACTER_REPLACEMENTS = {"“": '"', "”": '"', "‘": '"', "’": '"', "-": "–", "—": "–"}
 END_OF_TEXT = "<|endoftext|>"
 UNK = "<|unk|>"
-TOKEN_TO_REMOVE = ["", " "]
+TOKEN_TO_REMOVE = ["", " ", "\n\n", "\n\n\n"]
 DELIMTERS = [" ", END_OF_TEXT, "\n", ".", ",", ";", ":", "!", "?", '"']
 TOKENS_NOT_TO_FILTER = [
     END_OF_TEXT,

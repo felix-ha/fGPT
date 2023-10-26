@@ -20,10 +20,7 @@ import wget
 import os
 from torch.utils.data import DataLoader
 from data_prep import collate_fn
-from tokenizer import (
-    create_encoder,
-    create_decoder,
-)
+from tokenizer import create_encoder, create_decoder, split_tokens_raw
 from data_prep import read_from_json, get_token_int_dicts
 
 from dionysus.training import TrainingConfig, train
@@ -36,6 +33,7 @@ from model import (
 
 
 if __name__ == "__main__":
+
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--full",
