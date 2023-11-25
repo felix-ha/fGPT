@@ -1,9 +1,8 @@
-import re
 import pandas as pd
 from constants import TOKENS_NOT_TO_FILTER, END_OF_TEXT
 import logging
 import re
-import spacy
+from tqdm import tqdm
 from spacy.lang.en import English
 
 
@@ -28,9 +27,8 @@ def split_tokens_raw(
         logging.warn(
             f"{len_corpus=} is greater than 1_000_000, processing croupus in steps"
         )
-        logging.warn(f"THIS IS NOT IMPLETED CORRECTLY YET")
         tokens = []
-        for i in range(0, len(corpus), step):
+        for i in tqdm(range(0, len(corpus), step)):
             start = i
             end = i + step
             if end > len_corpus:
