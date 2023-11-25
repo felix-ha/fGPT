@@ -3,6 +3,7 @@ from constants import PADDING_ID
 import json
 from tqdm import tqdm
 from pathlib import Path
+import logging
 
 
 def write_to_json(data, path):
@@ -29,8 +30,12 @@ def load_file(path, ratio):
     with open(path, "r", encoding="utf8") as file:
         for line in file:
             lines.append(line.strip() + "\n")
+    logging.info(f"Loaded {len(lines)} lines from {path}.")
+    if ratio < 1.0:
+        logging.info(f"Only using {ratio * 100}% of the data.")
+        lines = lines[0 : int(len(lines) * ratio)]
     result = "".join(lines)
-    return result[0 : int(len(result) * ratio)]
+    return result
 
 
 def split_corpus(corpus: str, end_of_text_token: str) -> list:
