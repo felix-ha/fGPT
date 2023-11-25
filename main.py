@@ -87,7 +87,7 @@ if __name__ == "__main__":
     vocab_size = len(int_to_token)
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
 
-    encoder = create_encoder(token_to_int, DELIMTERS, TOKEN_TO_REMOVE, UNK)
+    encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
     decoder = create_decoder(int_to_token)
 
     dataset_train = LanguageModelDataset(texts_ids_train)
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 
     train_config = TrainingConfig(
         model=model,
-        epochs=2,
+        epochs=5,
         loss_func=loss_func,
         training_loader=dataloader_train,
         validation_loader=dataloader_validation,
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 
     train(train_config)
 
-    prompt = "Tom was"
+    prompt = "Alice was so tired when she got back home so she went"
     output, choices = generate(
         model,
         prompt,
