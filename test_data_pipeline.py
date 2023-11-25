@@ -88,7 +88,7 @@ with tempfile.TemporaryDirectory() as path_data:
                 validation_loader=dataloader_validation,
                 optimizer="AdamW",
                 device=device,
-                colab=False,
+                force_write_logs=False,
                 save_model=True,
                 tar_result=True,
                 save_path=temp_dir,
