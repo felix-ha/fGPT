@@ -103,10 +103,10 @@ if __name__ == "__main__":
 
     model = simpleGPT(
         vocab_size=vocab_size,
-        n_embd=8,
+        n_embd=768,
         num_heads=4,
         block_size=n_positions,
-        n_layer=2,
+        n_layer=4,
         dropout=0.1,
         device=device,
     )
@@ -130,6 +130,9 @@ if __name__ == "__main__":
     )
 
     train(train_config)
+
+    num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    logging.info(f"Number of parameters: {num_params}")
 
 prompts = [
     "Alice was so tired when she got back home so she went",
@@ -155,6 +158,8 @@ prompts = [
     'Alice and Jack walked up the street and met a girl in a red dress. The girl said to them, "Hi, I am Jane. What are your names?"',
     'Diva was hungry, and wanted to bake a cake, but she did not have any sugar at home, so she decided to go ask around. She started walking and met a squirrel. She asked the squirrel, "Would you happen',
 ]
+
+prompts = ['Jack was', 'Jack was not ']
 
 for prompt in prompts:
     output, choices = generate(
