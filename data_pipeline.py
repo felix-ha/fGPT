@@ -53,7 +53,7 @@ def pipeline(
     start_time = time.perf_counter()
 
     path = Path(path)
-    path.mkdir(parents=True, exist_ok=False)
+    path.mkdir(parents=True, exist_ok=True)
 
     # Create vocabular, i. e. token <-> int mappings^
     logging.info("start reading file")
@@ -81,6 +81,9 @@ def pipeline(
 
     with open(file_path_validation, "r", encoding="utf8") as file:
         corpus_validation_raw = file.read()
+        if ratio < 1.0:
+            corpus_validation_raw = corpus_validation_raw[:int(len(corpus_validation_raw)*ratio)]
+
     texts_validation = split_corpus(corpus_validation_raw, END_OF_TEXT)
 
     # Convert texts to input IDs
