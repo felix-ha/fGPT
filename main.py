@@ -18,6 +18,7 @@ from data_pipeline import pipeline
 from constants import *
 import wget
 import os
+import torch
 from torch.utils.data import DataLoader
 from data_prep import collate_fn
 from tokenizer import create_encoder, create_decoder, split_tokens_raw
@@ -75,7 +76,7 @@ if __name__ == "__main__":
     path = "datapipeline"
     pipeline(path_train, path_validation, path, args.ratio, args.splits)
 
-    device = "cpu"
+    device = "gpu" if torch.cuda.is_available() else "cpu"
 
     token_to_int, int_to_token = get_token_int_dicts(path)
     texts_ids_train = read_from_json(os.path.join(path, "texts_ids_train.json"))
@@ -93,10 +94,10 @@ if __name__ == "__main__":
     dataset_validation = LanguageModelDataset(texts_ids_validation)
 
     dataloader_train = DataLoader(
-        dataset_train, batch_size=4, shuffle=True, collate_fn=collate_fn
+        dataset_train, batch_size=64, shuffle=True, collate_fn=collate_fn
     )
     dataloader_validation = DataLoader(
-        dataset_validation, batch_size=4, shuffle=False, collate_fn=collate_fn
+        dataset_validation, batch_size=64, shuffle=False, collate_fn=collate_fn
     )
 
     stop_token_id = token_to_int[END_OF_TEXT]
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         save_model=True,
         tar_result=True,
         save_path="runs",
-        model_name="GPT-2",
+        model_name="fGPT",
         progress_bar=True,
     )
 
