@@ -102,8 +102,13 @@ class simpleGPT(nn.Module):
     def forward(self, idx):
         B, T = idx.shape
         tok_emb = self.token_embedding_table(idx)
+        if self.device != "cpu":
+            device = "cuda"
+        else:
+            device = "cpu"
+  
         positinal_emb = self.position_embedding_table(
-            torch.arange(T, device=self.device)
+            torch.arange(T, device=device)
         )
         x = tok_emb + positinal_emb
         x = self.blocks(x)
