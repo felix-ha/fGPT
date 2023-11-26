@@ -1,5 +1,25 @@
 # fGPT
 
+> A language model trained from scratch
+
+Test the model here: https://felixgpt.streamlit.app/
+
+# Overview
+
+The model architecture is a GPT-2 style encoder only tranformer (`dim_embedings=768` and `n_blocks=4`) with 40M parameters. 
+
+The model was trained on the [tiny stories](https://arxiv.org/abs/2305.07759) dataset using spaCy englisch words tokenizer. 
+
+It is inspired from Andrej Karpathy's  [nanoGPT](https://github.com/karpathy/nanoGPT) and his series [nn form zero to hero](https://github.com/karpathy/nn-zero-to-hero).
+
+# Training
+
+
+
+# Results
+
+Here are the prompts that were evaluated in chapter 4.4 of the original paper. 
+
 Prompt | fGPT | 33M 4 layers of original paper
 -------- | -------- | --------
 Alice was so tired when she got back home so she went | Answer from fGPT   | straight to bed.
