@@ -1,12 +1,8 @@
 import dropbox
-import argparse
 import contextlib
 import datetime
 import os
-import six
-import sys
 import time
-import unicodedata
 import tarfile
 
 from constants import *
@@ -14,6 +10,7 @@ from data_prep import read_from_json, get_token_int_dicts
 from tokenizer import create_encoder, create_decoder
 from model import simpleGPT, generate
 import torch
+import streamlit as st
 
 
 @contextlib.contextmanager
@@ -115,7 +112,6 @@ def download_and_extract(dbx, folder_dbx, file_name_src, folder_dst):
 #https://www.dropbox.com/developers/apps/
 token = os.getenv('DROPBOX_TOKEN')
 
-
 dbx = dropbox.Dropbox(token)
 
 folder_dbx = 'fGPT'
@@ -169,19 +165,26 @@ model_state_dict = training_result_dict["model_state_dict"]
 model.load_state_dict(model_state_dict)
 
 
-prompts = ['Alice was so tired']
+st.write(
+    """
+# fGPT 
 
-for prompt in prompts:
-    output, choices = generate(
-        model,
-        prompt,
-        encoder,
-        decoder,
-        stop_token_id=stop_token_id,
-        max_n=5,
-        choices_per_step=3,
-    )
+A language model trained from scratch on [tiny stories](https://arxiv.org/abs/2305.07759)
 
-    print(f"\n{choices}")
-    print(f"Promt: {prompt}")
-    print(f"Model: {output}")
+
+"""
+)
+
+prompt = st.text_input('Enter the beginning of a story...')
+
+if st.button('Generate'):
+    output, _ = generate(
+            model,
+            prompt,
+            encoder,
+            decoder,
+            stop_token_id=stop_token_id,
+            max_n=5,
+            choices_per_step=3,
+        )
+    st.text_area("continued story by model", output)
