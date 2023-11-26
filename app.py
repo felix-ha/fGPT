@@ -134,7 +134,7 @@ for file in [file_name_src_data, file_name_src_model]:
 
 
 path_data = os.path.join(folder_downloads, 'datapipeline')
-path_model = os.path.join(folder_downloads, '20231126_081051_GPT-2')
+path_model = os.path.join(folder_downloads, '20231126_213755_fGPT')
 
 token_to_int, int_to_token = get_token_int_dicts(path_data)
 texts_ids_train = read_from_json(os.path.join(path_data, "texts_ids_train.json"))
