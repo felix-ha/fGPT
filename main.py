@@ -161,6 +161,8 @@ prompts = [
     'Diva was hungry, and wanted to bake a cake, but she did not have any sugar at home, so she decided to go ask around. She started walking and met a squirrel. She asked the squirrel, "Would you happen',
 ]
 
+model = model.to('cpu')
+
 prompts = ['Jack was', 'Jack was not ']
 
 for prompt in prompts:
@@ -171,7 +173,7 @@ for prompt in prompts:
         decoder,
         stop_token_id=stop_token_id,
         max_n=5,
-        choices_per_step=3,
+        choices_per_step=3
     )
 
     logging.info(f"\n{choices}")
