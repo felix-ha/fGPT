@@ -141,7 +141,9 @@ prompts = [
     "Jack wanted to read a book, so he went to",
     '"Can cows fly?", Alice asked her mother.',
     '"What do birds like to eat?", Tom asked his mother.',
-    '"What language do they speak in France?", Tom asked his mother'
+    '"What language do they speak in France?", Tom asked his mother',
+    'If I throw a ball up in the air, eventually it will',
+    'It was winter and cold outside so his mother told him, "You should',
     "Lily likes cats and dogs. She asked her mom for a dog and her mom said no, so instead she asked",
     'Jack told Mary, "If you give me your banana, I’ll give you my apple". Mary gave Jack her Banana so',
     "On weekends Jack went to visit his grandmother whereas on weekdays he would go to school. Last weekend, when Jack was on his way to",
