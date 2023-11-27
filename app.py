@@ -1,6 +1,7 @@
 import os
 import streamlit as st
 import gdown
+import gc
 
 from constants import *
 from data_prep import read_from_json, get_token_int_dicts
@@ -64,4 +65,8 @@ if st.button('Generate'):
             max_n=100,
             choices_per_step=3,
         )
+    
+    del model
+    gc.collect()
+
     st.text_area("continued story by model", output)
