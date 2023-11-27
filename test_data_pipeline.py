@@ -37,8 +37,9 @@ with tempfile.TemporaryDirectory() as path_data:
                 os.path.join(path_data, "texts_ids_validation.json")
             )
 
-            vocab_size = len(int_to_token)
-            n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+            dataset_info = read_from_json(os.path.join(path_data, "dataset_info.json"))
+            vocab_size = dataset_info["vocab_size"]
+            n_positions = dataset_info["n_positions"]
 
             assert len(token_to_int) == 25
             assert len(int_to_token) == 25
