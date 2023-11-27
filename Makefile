@@ -1,14 +1,14 @@
 .PHONY: docker_build
 docker_build:
-	docker build . -t dev-fgpt
+	docker build . -t fgpt
 
 .PHONY: docker_run
 docker_run:
-	docker run -v $(pwd):/app dev-fgpt
+	docker run -v $(pwd):/app fgpt
 
 .PHONY: docker_shell
 docker_shell:
-	docker run  -it -v $(pwd):/app --entrypoint bash dev-fgpt
+	docker run  -it -v $(pwd):/app --entrypoint bash fgpt
 
 .PHONY: pre_commit
 pre_commit:
