@@ -32,6 +32,17 @@ from model import (
     generate,
 )
 
+def get_model(vocab_size, n_positions, device):
+    return simpleGPT(
+        vocab_size=vocab_size,
+        n_embd=768,
+        num_heads=4,
+        block_size=n_positions,
+        n_layer=4,
+        dropout=0.1,
+        device=device,
+    )
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -109,15 +120,7 @@ if __name__ == "__main__":
 
     stop_token_id = token_to_int[END_OF_TEXT]
 
-    model = simpleGPT(
-        vocab_size=vocab_size,
-        n_embd=768,
-        num_heads=4,
-        block_size=n_positions,
-        n_layer=4,
-        dropout=0.1,
-        device=device,
-    )
+    model = get_model(vocab_size, n_positions, device)
 
     loss_func = cross_entropy_language_model
 

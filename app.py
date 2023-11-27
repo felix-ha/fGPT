@@ -10,6 +10,7 @@ from data_prep import read_from_json, get_token_int_dicts
 from tokenizer import create_encoder, create_decoder
 from model import simpleGPT, generate
 import torch
+from main import get_model
 import streamlit as st
 
 
@@ -151,15 +152,7 @@ decoder = create_decoder(int_to_token)
 
 stop_token_id = token_to_int[END_OF_TEXT]
 
-model = simpleGPT(
-    vocab_size=vocab_size,
-    n_embd=4*4,
-    num_heads=4,
-    block_size=n_positions,
-    n_layer=2,
-    dropout=0.1,
-    device='cpu',
-)
+model = get_model(vocab_size, n_positions, device='cpu')
 
 training_result_dict = torch.load(os.path.join(path_model, "last", "model.pt"))
 model_state_dict = training_result_dict["model_state_dict"]
