@@ -98,11 +98,24 @@ def pipeline(
         f"Average length of stories: {np.mean([len(text_ids) for text_ids in texts_ids_train]):.1f}"
     )
 
+    vocab_size = len(int_to_token)
+    n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+
+    logging.info(f"Size of vocabulary: {vocab_size}")
+    logging.info(f"Maxmial size of a text: {n_positions}")
+
+    dataset_info = {
+        "vocab_size": vocab_size,
+        "n_positions": n_positions,
+    }
+
     logging.info("writing results")
+
     write_to_json(token_to_int, path.joinpath("token_to_int.json"))
     write_to_json(int_to_token, path.joinpath("int_to_token.json"))
     write_to_json(texts_ids_train, path.joinpath("texts_ids_train.json"))
     write_to_json(texts_ids_validation, path.joinpath("texts_ids_validation.json"))
+    write_to_json(dataset_info, path.joinpath("dataset_info.json"))
     tar_folder(path)
 
     end_time = time.perf_counter()

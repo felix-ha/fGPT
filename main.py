@@ -83,9 +83,10 @@ if __name__ == "__main__":
     texts_ids_validation = read_from_json(
         os.path.join(path, "texts_ids_validation.json")
     )
-
-    vocab_size = len(int_to_token)
-    n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+    
+    dataset_info = read_from_json(os.path.join(path, "dataset_info.json"))
+    vocab_size = dataset_info["vocab_size"]
+    n_positions = dataset_info["n_positions"]
 
     encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
     decoder = create_decoder(int_to_token)
