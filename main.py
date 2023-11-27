@@ -53,6 +53,12 @@ if __name__ == "__main__":
         type=int,
         help="Ratio of the data to use for training.",
     )
+    parser.add_argument(
+        "--epochs",
+        default=1,
+        type=int,
+        help="Number of epochs for training.",
+    )
 
     args = parser.parse_args()
 
@@ -117,7 +123,7 @@ if __name__ == "__main__":
 
     train_config = TrainingConfig(
         model=model,
-        epochs=5,
+        epochs=args.epochs,
         loss_func=loss_func,
         training_loader=dataloader_train,
         validation_loader=dataloader_validation,
