@@ -3,10 +3,12 @@
 > A language model trained from scratch
 
 Test the model here: https://felixgpt.streamlit.app/
+	
+Repo is work in progress: At the moment the model was trained only on 2672 stories for 10 epochs. 
 
 # Overview
 
-The model architecture is a GPT-2 style encoder only tranformer (`dim_embedings=768` and `n_blocks=4`) with 40M parameters. 
+The model architecture is a GPT-2 style encoder only tranformer (`dim_embedings=768` and `n_blocks=4`) with context of 1004 tokens and has 38M parameters.
 
 The model was trained on the [tiny stories](https://arxiv.org/abs/2305.07759) dataset using spaCy englisch words tokenizer. 
 
