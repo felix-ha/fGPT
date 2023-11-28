@@ -1,14 +1,23 @@
 import os
 import streamlit as st
 import gdown
-import gc
-
 from constants import *
 from data_prep import read_from_json, get_token_int_dicts
 from tokenizer import create_encoder, create_decoder
-from model import simpleGPT, generate
+from model import generate
 import torch
 from main import get_model
+
+
+@st.chache
+def load_model(vocab_size, n_positions):
+    model = get_model(vocab_size, n_positions, device='cpu')
+
+    training_result_dict = torch.load(os.path.join(folder_downloads, "model.pt"), map_location=torch.device('cpu'))
+    model_state_dict = training_result_dict["model_state_dict"]
+    model.load_state_dict(model_state_dict)
+
+    return model
 
 
 folder_downloads = 'downloads'
@@ -37,11 +46,7 @@ decoder = create_decoder(int_to_token)
 
 stop_token_id = token_to_int[END_OF_TEXT]
 
-model = get_model(vocab_size, n_positions, device='cpu')
-
-training_result_dict = torch.load(os.path.join(folder_downloads, "model.pt"), map_location=torch.device('cpu'))
-model_state_dict = training_result_dict["model_state_dict"]
-model.load_state_dict(model_state_dict)
+model = load_model(vocab_size, n_positions)
 
 st.write(
     """
