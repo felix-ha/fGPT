@@ -140,6 +140,8 @@ if __name__ == "__main__":
         progress_bar=True,
     )
 
+    logging.info(f"maybe set PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:32")
+
     train(train_config)
 
     num_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
