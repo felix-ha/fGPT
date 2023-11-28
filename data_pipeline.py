@@ -100,13 +100,16 @@ def pipeline(
 
     vocab_size = len(int_to_token)
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
+    number_of_tokens = len([item for sublist in texts_ids_train for item in sublist])
 
     logging.info(f"Size of vocabulary: {vocab_size}")
     logging.info(f"Maxmial size of a text: {n_positions}")
+    logging.info(f"Number of tokens in training set: {number_of_tokens}")
 
     dataset_info = {
         "vocab_size": vocab_size,
         "n_positions": n_positions,
+        "n_tokens_training:": number_of_tokens
     }
 
     logging.info("writing results")
