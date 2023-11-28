@@ -2,3 +2,7 @@
 .devcontainer/*
 .vscode/*
 /data/Tiny*
+/runs/*
+/datapipeline/*
+log.txt
+*.tar
