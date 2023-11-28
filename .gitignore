@@ -6,3 +6,4 @@
 /datapipeline/*
 log.txt
 *.tar
+.venv/*
