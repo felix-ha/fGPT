@@ -64,6 +64,9 @@ class MockModel:
             return torch.tensor([[[1, 1, 1, 1, 2]]], dtype=torch.float32)
 
         return x
+    
+    def eval(self):
+        pass    
 
 
 def test_generate():

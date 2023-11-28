@@ -133,6 +133,7 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
     x_input = torch.tensor([encoder(prompt)])
     response_idx = x_input.shape[1]
     iterations = []
+    model.eval()
     with torch.no_grad():
         for _ in range(max_n):
             iteration = dict()
