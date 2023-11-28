@@ -62,11 +62,10 @@ if st.button('Generate'):
             encoder,
             decoder,
             stop_token_id=stop_token_id,
-            max_n=100,
+            max_n=50,
             choices_per_step=3,
+            sample=True,
+            temperature=1.5
         )
     
-    del model
-    gc.collect()
-
     st.text_area("continued story by model", output)
