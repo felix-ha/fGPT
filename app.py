@@ -9,7 +9,7 @@ import torch
 from main import get_model
 
 
-@st.cache
+@st.cache_resource
 def load_model(vocab_size, n_positions):
     model = get_model(vocab_size, n_positions, device='cpu')
 
