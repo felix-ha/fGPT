@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset
+import logging
 
 
 class Head(nn.Module):
@@ -142,6 +143,7 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
             logits_last = y_output[:, -1, :]
             logits_last /= temperature
             probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
+            logging.info(f'Probabilitie of stop token: {probabilities_next_token[stop_token_id-1]}')
             sorted_token_ids = torch.argsort(
                 probabilities_next_token, dim=-1, descending=True
             )
