@@ -165,7 +165,10 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
                 break
 
     response_ids = x_input[:, response_idx:]
-    return decoder(response_ids.flatten().tolist()), pd.DataFrame(iterations)
+    result = decoder(response_ids.squeeze().tolist())
+    if token_id != stop_token_id:
+        result = result + f"(reached maximium tokens to generate: {max_n})"
+    return result, pd.DataFrame(iterations)
 
 
 class LanguageModelDataset(Dataset):
