@@ -29,7 +29,7 @@ if not os.path.exists(folder_downloads):
 
 urls = [
     os.getenv("URL_DATASET_INFO"),
-    os.getenv("URL_TOKEN__TO_INT"),
+    os.getenv("URL_TOKEN_TO_INT"),
     os.getenv("URL_INT_TO_TOKEN"),
     os.getenv("URL_MODEL"),
 ]
