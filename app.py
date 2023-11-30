@@ -71,10 +71,10 @@ if st.button("Generate"):
         encoder,
         decoder,
         stop_token_id=stop_token_id,
-        max_n=50,
+        max_n=100,
         choices_per_step=3,
         sample=True,
-        temperature=1.5,
+        temperature=1,
     )
 
     st.text_area("continued story by model", output)
