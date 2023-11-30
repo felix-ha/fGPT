@@ -4,7 +4,7 @@
 
 Test the model here: https://felixgpt.streamlit.app/
 	
-Repo is work in progress: At the moment the model was trained only on 2672 stories for 10 epochs. 
+Repo is work in progress: At the moment the model was trained only on 13439 stories for 2 epochs. 
 
 # Overview
 
