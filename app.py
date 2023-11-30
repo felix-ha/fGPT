@@ -28,10 +28,10 @@ if not os.path.exists(folder_downloads):
     os.makedirs(folder_downloads)
 
 urls = [
-    "https://drive.google.com/uc?id=1USRoXjarH5-07AF50RXMm4FpCj9Qg20M",
-    "https://drive.google.com/uc?id=1qNRjnN4W94rRxn5TDjcXbC-F0uyR8VjW",
-    "https://drive.google.com/uc?id=1mkK1ME-5hfGRdkYS9jUBaz21Y1AMcRYv",
-    "https://drive.google.com/uc?id=1KXCfgk6LHtgt934FwsizejQyWTKIMaId",
+    os.getenv("URL_DATASET_INFO"),
+    os.getenv("URL_TOKEN__TO_INT"),
+    os.getenv("URL_INT_TO_TOKEN"),
+    os.getenv("URL_MODEL"),
 ]
 
 outputs = ["dataset_info.json", "token_to_int.json", "int_to_token.json", "model.pt"]
