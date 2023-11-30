@@ -68,7 +68,6 @@ class MockModel:
     def eval(self):
         pass    
 
-@pytest.mark.skip("TODO: investigate stop_token_id")
 def test_generate():
     token_to_index = {"a": 0, "b": 1, "c": 2, "d": 3, END_OF_TEXT: 4, UNK: 5}
     index_to_token = {v: k for k, v in token_to_index.items()}

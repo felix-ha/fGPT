@@ -96,7 +96,8 @@ def create_token_to_int_dicts(
 ) -> tuple[dict[str, int], dict[int, str]]:
     token_to_int = {token: i for i, token in enumerate(tokens)}
     token_to_int[unk] = len(token_to_int)
-    token_to_int[end_of_text_token] = len(token_to_int)
+    if end_of_text_token not in token_to_int:
+        token_to_int[end_of_text_token] = len(token_to_int)
     int_to_token = {i: token for token, i in token_to_int.items()}
     return token_to_int, int_to_token
 

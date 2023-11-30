@@ -130,8 +130,6 @@ def cross_entropy_language_model(logits, targets):
 
 
 def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_step, sample=False, temperature=1.0):
-    # TODO investigate stop_token_id, this is possibly wrong
-    stop_token_id = stop_token_id - 1
     response_ids = []
     x_input = torch.tensor([encoder(prompt)])
     response_idx = x_input.shape[1]
@@ -145,7 +143,7 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
             logits_last = y_output[:, -1, :]
             logits_last /= temperature
             probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
-            logging.info(f'Probability of stop token: {probabilities_next_token[stop_token_id]}')
+            logging.info(f'Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}')
             sorted_token_ids = torch.argsort(
                 probabilities_next_token, dim=-1, descending=True
             )

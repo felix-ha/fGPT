@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory() as path_data:
             assert len(texts_ids_train) == 5
             assert len(texts_ids_validation) == 3
 
-            assert n_positions == 8
+            assert n_positions == 9
             assert vocab_size == 25
 
             device = "cpu"

@@ -89,9 +89,12 @@ def pipeline(
     # Convert texts to input IDs
     logging.info("converting training texts to input ids")
     texts_ids_train = texts_to_input_ids(texts_train, encoder)
+    texts_ids_train = [item + [token_to_int[END_OF_TEXT]] for item in texts_ids_train]
+
     logging.info("converting validation texts to input ids")
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
-
+    texts_ids_validation = [item + [token_to_int[END_OF_TEXT]] for item in texts_ids_validation]
+    
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
     logging.info(f"Maxmial size of a text: {n_positions}")
     logging.info(
