@@ -64,9 +64,10 @@ class MockModel:
             return torch.tensor([[[1, 1, 1, 1, 2]]], dtype=torch.float32)
 
         return x
-    
+
     def eval(self):
-        pass    
+        pass
+
 
 def test_generate():
     token_to_index = {"a": 0, "b": 1, "c": 2, "d": 3, END_OF_TEXT: 4, UNK: 5}

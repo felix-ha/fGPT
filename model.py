@@ -107,10 +107,8 @@ class simpleGPT(nn.Module):
             device = "cuda"
         else:
             device = "cpu"
-  
-        positinal_emb = self.position_embedding_table(
-            torch.arange(T, device=device)
-        )
+
+        positinal_emb = self.position_embedding_table(torch.arange(T, device=device))
         x = tok_emb + positinal_emb
         x = self.blocks(x)
         logits = self.lm_head(x)
@@ -129,7 +127,17 @@ def cross_entropy_language_model(logits, targets):
     return loss
 
 
-def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_step, sample=False, temperature=1.0):
+def generate(
+    model,
+    prompt,
+    encoder,
+    decoder,
+    stop_token_id,
+    max_n,
+    choices_per_step,
+    sample=False,
+    temperature=1.0,
+):
     response_ids = []
     x_input = torch.tensor([encoder(prompt)])
     response_idx = x_input.shape[1]
@@ -143,7 +151,9 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
             logits_last = y_output[:, -1, :]
             logits_last /= temperature
             probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
-            logging.info(f'Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}')
+            logging.info(
+                f"Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}"
+            )
             sorted_token_ids = torch.argsort(
                 probabilities_next_token, dim=-1, descending=True
             )
@@ -152,13 +162,15 @@ def generate(model, prompt, encoder, decoder, stop_token_id, max_n, choices_per_
                 token_prob = probabilities_next_token[token_id].cpu().numpy()
                 token_choice = f"{decoder([token_id])} ({100 * token_prob:.2f}%)"
                 iteration[f"Choice {choice_idx+1}"] = token_choice
-            
+
             if sample:
                 token_id = torch.multinomial(probabilities_next_token, 1)
             else:
                 token_id = torch.argmax(probabilities_next_token)
-                
-            logging.info(f'Probability of choosen token: {torch.max(probabilities_next_token).cpu().numpy()}')
+
+            logging.info(
+                f"Probability of choosen token: {torch.max(probabilities_next_token).cpu().numpy()}"
+            )
             x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
             iterations.append(iteration)
             if token_id == stop_token_id:

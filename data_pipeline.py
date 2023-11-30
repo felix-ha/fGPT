@@ -82,7 +82,9 @@ def pipeline(
     with open(file_path_validation, "r", encoding="utf8") as file:
         corpus_validation_raw = file.read()
         if ratio < 1.0:
-            corpus_validation_raw = corpus_validation_raw[:int(len(corpus_validation_raw)*ratio)]
+            corpus_validation_raw = corpus_validation_raw[
+                : int(len(corpus_validation_raw) * ratio)
+            ]
 
     texts_validation = split_corpus(corpus_validation_raw, END_OF_TEXT)
 
@@ -93,8 +95,10 @@ def pipeline(
 
     logging.info("converting validation texts to input ids")
     texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
-    texts_ids_validation = [item + [token_to_int[END_OF_TEXT]] for item in texts_ids_validation]
-    
+    texts_ids_validation = [
+        item + [token_to_int[END_OF_TEXT]] for item in texts_ids_validation
+    ]
+
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
     logging.info(f"Maxmial size of a text: {n_positions}")
     logging.info(
@@ -112,7 +116,7 @@ def pipeline(
     dataset_info = {
         "vocab_size": vocab_size,
         "n_positions": n_positions,
-        "n_tokens_training:": number_of_tokens
+        "n_tokens_training:": number_of_tokens,
     }
 
     logging.info("writing results")

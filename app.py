@@ -11,31 +11,35 @@ from main import get_model
 
 @st.cache_resource
 def load_model(vocab_size, n_positions):
-    model = get_model(vocab_size, n_positions, device='cpu')
+    model = get_model(vocab_size, n_positions, device="cpu")
 
-    training_result_dict = torch.load(os.path.join(folder_downloads, "model.pt"), map_location=torch.device('cpu'))
+    training_result_dict = torch.load(
+        os.path.join(folder_downloads, "model.pt"), map_location=torch.device("cpu")
+    )
     model_state_dict = training_result_dict["model_state_dict"]
     model.load_state_dict(model_state_dict)
 
     return model
 
 
-folder_downloads = 'downloads'
+folder_downloads = "downloads"
 
 if not os.path.exists(folder_downloads):
     os.makedirs(folder_downloads)
-	
-urls = ['https://drive.google.com/uc?id=1USRoXjarH5-07AF50RXMm4FpCj9Qg20M',
-	'https://drive.google.com/uc?id=1qNRjnN4W94rRxn5TDjcXbC-F0uyR8VjW',
-	'https://drive.google.com/uc?id=1mkK1ME-5hfGRdkYS9jUBaz21Y1AMcRYv',
-	'https://drive.google.com/uc?id=1KXCfgk6LHtgt934FwsizejQyWTKIMaId' ]
+
+urls = [
+    "https://drive.google.com/uc?id=1USRoXjarH5-07AF50RXMm4FpCj9Qg20M",
+    "https://drive.google.com/uc?id=1qNRjnN4W94rRxn5TDjcXbC-F0uyR8VjW",
+    "https://drive.google.com/uc?id=1mkK1ME-5hfGRdkYS9jUBaz21Y1AMcRYv",
+    "https://drive.google.com/uc?id=1KXCfgk6LHtgt934FwsizejQyWTKIMaId",
+]
 
 outputs = ["dataset_info.json", "token_to_int.json", "int_to_token.json", "model.pt"]
 for url, output in zip(urls, outputs):
-	file = os.path.join(folder_downloads, output)
-	if not os.path.isfile(file):
-		gdown.download(url, file, quiet=False)
-	
+    file = os.path.join(folder_downloads, output)
+    if not os.path.isfile(file):
+        gdown.download(url, file, quiet=False)
+
 token_to_int, int_to_token = get_token_int_dicts(folder_downloads)
 dataset_info = read_from_json(os.path.join(folder_downloads, "dataset_info.json"))
 vocab_size = dataset_info["vocab_size"]
@@ -58,19 +62,19 @@ A language model trained from scratch on [tiny stories](https://arxiv.org/abs/23
 """
 )
 
-prompt = st.text_input('Enter the beginning of a story...')
+prompt = st.text_input("Enter the beginning of a story...")
 
-if st.button('Generate'):
+if st.button("Generate"):
     output, _ = generate(
-            model,
-            prompt,
-            encoder,
-            decoder,
-            stop_token_id=stop_token_id,
-            max_n=50,
-            choices_per_step=3,
-            sample=True,
-            temperature=1.5
-        )
-    
+        model,
+        prompt,
+        encoder,
+        decoder,
+        stop_token_id=stop_token_id,
+        max_n=50,
+        choices_per_step=3,
+        sample=True,
+        temperature=1.5,
+    )
+
     st.text_area("continued story by model", output)

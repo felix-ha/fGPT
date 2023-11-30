@@ -32,6 +32,7 @@ from model import (
     generate,
 )
 
+
 def get_model(vocab_size, n_positions, device):
     return simpleGPT(
         vocab_size=vocab_size,
@@ -100,7 +101,7 @@ if __name__ == "__main__":
     texts_ids_validation = read_from_json(
         os.path.join(path, "texts_ids_validation.json")
     )
-    
+
     dataset_info = read_from_json(os.path.join(path, "dataset_info.json"))
     vocab_size = dataset_info["vocab_size"]
     n_positions = dataset_info["n_positions"]
@@ -138,7 +139,7 @@ if __name__ == "__main__":
         save_path="runs",
         model_name="fGPT",
         progress_bar=True,
-        checkpoint_step=1
+        checkpoint_step=1,
     )
 
     logging.info(f"maybe set PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:32")
