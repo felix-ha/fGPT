@@ -71,7 +71,7 @@ if st.button("Generate"):
         encoder,
         decoder,
         stop_token_id=stop_token_id,
-        max_n=100,
+        max_n=300,
         choices_per_step=3,
         sample=True,
         temperature=1,
