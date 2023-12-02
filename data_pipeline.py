@@ -12,7 +12,14 @@ from tokenizer import (
     create_token_to_int_dicts,
     create_encoder,
 )
-from data_prep import write_to_json, load_file, split_corpus, texts_to_input_ids
+from data_prep import (
+    write_to_json,
+    load_file,
+    split_corpus,
+    texts_to_input_ids,
+    read_from_json,
+    load_input_ids
+)
 from constants import *
 
 import logging
@@ -49,6 +56,8 @@ def pipeline(
     path,
     ratio=1.0,
     number_splits_for_sub_corpus=10,
+    token_to_int_file=None,
+    int_to_token_file=None,
 ):
     start_time = time.perf_counter()
 
@@ -62,14 +71,27 @@ def pipeline(
 
     print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
-    tokens_raw = split_tokens_raw(
-        corpus_train_clean, END_OF_TEXT, number_splits_for_sub_corpus
-    )
-    tokens_all = clean_tokens(tokens_raw, TOKEN_TO_REMOVE)
-    tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
-    token_to_int, int_to_token = create_token_to_int_dicts(
-        tokens_unique, UNK, END_OF_TEXT
-    )
+
+    del corpus_train_raw
+
+    if token_to_int_file and int_to_token_file:
+        token_to_int = read_from_json(token_to_int_file)
+        int_to_token = read_from_json(int_to_token_file)
+        logging.info("token to int dicts where provided and loaded")
+    else:
+        tokens_raw = split_tokens_raw(
+            corpus_train_clean, END_OF_TEXT, number_splits_for_sub_corpus
+        )
+        tokens_all = clean_tokens(tokens_raw, TOKEN_TO_REMOVE)
+        tokens_unique = get_unique_tokens(tokens_all, vocab_size=10_000)
+        token_to_int, int_to_token = create_token_to_int_dicts(
+            tokens_unique, UNK, END_OF_TEXT
+        )
+
+        logging.info("save token to int dicts")
+        write_to_json(token_to_int, path.joinpath("token_to_int.json"))
+        write_to_json(int_to_token, path.joinpath("int_to_token.json"))
+
     vocab_size = len(int_to_token)
     logging.info(f"Size of vocabulary: {vocab_size}")
 
@@ -90,14 +112,14 @@ def pipeline(
 
     # Convert texts to input IDs
     logging.info("converting training texts to input ids")
-    texts_ids_train = texts_to_input_ids(texts_train, encoder)
-    texts_ids_train = [item + [token_to_int[END_OF_TEXT]] for item in texts_ids_train]
+    texts_to_input_ids(texts_train, encoder, path, "training", token_to_int)
 
     logging.info("converting validation texts to input ids")
-    texts_ids_validation = texts_to_input_ids(texts_validation, encoder)
-    texts_ids_validation = [
-        item + [token_to_int[END_OF_TEXT]] for item in texts_ids_validation
-    ]
+    texts_to_input_ids(texts_validation, encoder, path, "validation", token_to_int)
+
+    logging.info("load text ids")
+    texts_ids_train = load_input_ids(path, "training")
+    texts_ids_validation = load_input_ids(path, "validation")
 
     n_positions = max([len(text_ids) for text_ids in texts_ids_train])
     logging.info(f"Maxmial size of a text: {n_positions}")
@@ -121,8 +143,6 @@ def pipeline(
 
     logging.info("writing results")
 
-    write_to_json(token_to_int, path.joinpath("token_to_int.json"))
-    write_to_json(int_to_token, path.joinpath("int_to_token.json"))
     write_to_json(texts_ids_train, path.joinpath("texts_ids_train.json"))
     write_to_json(texts_ids_validation, path.joinpath("texts_ids_validation.json"))
     write_to_json(dataset_info, path.joinpath("dataset_info.json"))

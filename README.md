@@ -14,7 +14,11 @@ The model was trained on the [tiny stories](https://arxiv.org/abs/2305.07759) da
 
 It is inspired from Andrej Karpathy's  [nanoGPT](https://github.com/karpathy/nanoGPT) and his series [nn form zero to hero](https://github.com/karpathy/nn-zero-to-hero).
 
-# Training
+# Current status
+
+Result of full run of the data preparation:
+
+Only use 10k most common tokens instead of 49959 unique tokens that are found in the whole dataset.
 
 
 

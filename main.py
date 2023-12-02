@@ -61,7 +61,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--splits",
-        default=2,
+        default=100,
         type=int,
         help="Ratio of the data to use for training.",
     )
@@ -92,7 +92,15 @@ if __name__ == "__main__":
         path_validation = "data/data_validation.txt"
 
     path = "datapipeline"
-    pipeline(path_train, path_validation, path, args.ratio, args.splits)
+    pipeline(
+        path_train,
+        path_validation,
+        path,
+        args.ratio,
+        args.splits,
+        token_to_int_file="datapipeline/token_to_int.json",
+        int_to_token_file="datapipeline/int_to_token.json",
+    )
 
     device = "gpu" if torch.cuda.is_available() else "cpu"
 

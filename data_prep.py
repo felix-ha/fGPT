@@ -1,5 +1,5 @@
 import torch
-from constants import PADDING_ID
+from constants import PADDING_ID, END_OF_TEXT
 import json
 from tqdm import tqdm
 from pathlib import Path
@@ -49,14 +49,35 @@ def split_corpus(corpus: str, end_of_text_token: str) -> list:
     return sentences[:-1]
 
 
-def texts_to_input_ids(texts: list[str], encoder: callable) -> list[list[int]]:
+def texts_to_input_ids(
+    texts: list[str], encoder: callable, root_path, save_directory, token_to_int
+) -> list[list[int]]:
     """
     Convert a list of texts to a list of lists of input IDs.
     """
-    input_ids = []
-    for text in tqdm(texts):
-        input_ids.append(encoder(text))
-    return input_ids
+    path = Path(root_path) / save_directory
+    path.mkdir(parents=True, exist_ok=True)
+    N_texts = len(texts)
+
+    for i in tqdm(range(N_texts)):
+        file_name = f"{i}.json"
+        file_path = path / file_name
+
+        if file_path.exists():
+            continue
+        else:
+            text_tokens = encoder(texts[i]) + [token_to_int[END_OF_TEXT]]
+            write_to_json(text_tokens, file_path)
+
+
+def load_input_ids(root_path, save_directory):
+    path = Path(root_path) / save_directory
+    result = []
+    for file_path in path.iterdir():
+        if file_path.is_file():
+            ids = read_from_json(file_path)
+            result += [ids]
+    return result
 
 
 def input_ids_to_tensor(
