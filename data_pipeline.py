@@ -69,7 +69,7 @@ def pipeline(
     corpus_train_raw = load_file(file_path_train, ratio)
     logging.info("read file")
 
-    print_unique_characters(corpus_train_raw)
+    # print_unique_characters(corpus_train_raw)
     corpus_train_clean = replace_characters(corpus_train_raw, CHARACTER_REPLACEMENTS)
 
     del corpus_train_raw
