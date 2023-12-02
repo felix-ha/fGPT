@@ -16,7 +16,9 @@ It is inspired from Andrej Karpathy's  [nanoGPT](https://github.com/karpathy/nan
 
 # Current status
 
-Result of full run of the data preparation:
+Converting text to tokens is in progress right now. The training dataset consits of 2717699 stories and converting all of them to tokens takes about 120 hours. 
+
+## Results of data preprocessing
 
 Only use 10k most common tokens instead of 49959 unique tokens that are found in the whole dataset.
 
