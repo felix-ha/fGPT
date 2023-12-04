@@ -180,6 +180,7 @@ def generate(
     result = decoder(response_ids.squeeze().tolist())
     if token_id != stop_token_id:
         result = result + f"(reached maximium tokens to generate: {max_n})"
+    result = result.replace(' . ', '. ').replace(' , ', ', ').replace(' ! ', '! ').replace(' ? ', '? ').replace(" '", "'")
     return result, pd.DataFrame(iterations)
 
 
