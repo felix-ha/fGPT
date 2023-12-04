@@ -77,4 +77,4 @@ if st.button("Generate"):
         temperature=1,
     )
 
-    st.text_area("continued story by model", output, height=100)
+    st.text_area("continued story by model", output, height=300)
