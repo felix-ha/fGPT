@@ -148,6 +148,7 @@ if __name__ == "__main__":
         model_name="fGPT",
         progress_bar=True,
         checkpoint_step=1,
+        checkpoint_step_batch=500
     )
 
     logging.info(f"maybe set PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:32")
