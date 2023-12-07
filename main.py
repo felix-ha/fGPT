@@ -121,10 +121,10 @@ if __name__ == "__main__":
     dataset_validation = LanguageModelDataset(texts_ids_validation)
 
     dataloader_train = DataLoader(
-        dataset_train, batch_size=32, shuffle=True, collate_fn=collate_fn
+        dataset_train, batch_size=8, shuffle=True, collate_fn=collate_fn
     )
     dataloader_validation = DataLoader(
-        dataset_validation, batch_size=32, shuffle=False, collate_fn=collate_fn
+        dataset_validation, batch_size=8, shuffle=False, collate_fn=collate_fn
     )
 
     stop_token_id = token_to_int[END_OF_TEXT]
