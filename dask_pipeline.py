@@ -167,7 +167,7 @@ def create_dataset(input_file, output_path, n_vocab, train):
         logging.info("creating dataset")
         df_train = dd.read_parquet(replaced_file)
         encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
-        df_train['ids']= df_train['text'].apply(lambda t: encoder(t))
+        df_train['ids']= df_train['text'].apply(lambda t: encoder(t.strip()) + [token_to_int[END_OF_TEXT]])
         schema = pa.schema([
             ('text', pa.string()),
             ('ids',pa.list_(pa.int32()))
