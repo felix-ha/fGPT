@@ -2,3 +2,4 @@ numpy>=1.23.2
 pandas==2.1.1
 spacy==3.7.2
 wget==3.2
+dask==2023.12.0
