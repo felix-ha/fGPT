@@ -1,5 +1,4 @@
 from pathlib import Path
-import polars as pl
 
 import dask.dataframe as dd
 import dask
@@ -121,11 +120,11 @@ def create_dataset(input_file, output_path, n_vocab, train):
         result = "".join(corpus_train_raw)
         del corpus_train_raw
         result = result.split(END_OF_TEXT)
-        data = [{"text": text} for text in result]
-        data = data[:5_000]
+        data = [{"text": text + f" {END_OF_TEXT}"} for text in result]
+        data = data[:250_000]
         del result
         logging.info("creating dataframe for raw texts")
-        df = dd.from_pandas(pd.DataFrame(data), npartitions=10)
+        df = dd.from_pandas(pd.DataFrame(data), npartitions=100)
         df.to_parquet(output_file)
 
     if replaced_file.is_file() or replaced_file.is_dir():
@@ -133,6 +132,7 @@ def create_dataset(input_file, output_path, n_vocab, train):
         df = dd.read_parquet(replaced_file)
     else:
         logging.info("creating replaced texts")
+        df['text'] = df['text'].str.strip()
         for char, replacement in CHARACTER_REPLACEMENTS.items():
             df['text'] = df['text'].str.replace(char, replacement, regex=False)
         logging.info("writing parquet for replaced texts")
@@ -161,13 +161,15 @@ def create_dataset(input_file, output_path, n_vocab, train):
 
     # Create IDs for all texts
 
+    def create_ids(tokens):
+        return [token_to_int.get(token, token_to_int[UNK]) for token in tokens]
+
     if dataset_train_file.is_file() or dataset_train_file.is_dir():
         logging.info("dataset was already created")
     else:
         logging.info("creating dataset")
-        df_train = dd.read_parquet(replaced_file)
-        encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
-        df_train['ids']= df_train['text'].apply(lambda t: encoder(t.strip()) + [token_to_int[END_OF_TEXT]])
+        df_train = dd.read_parquet(tokenized_file).repartition(partition_size="100MB")
+        df_train['ids'] = df_train['tokens'].map_partitions(lambda df: df.map(create_ids))
         schema = pa.schema([
             ('text', pa.string()),
             ('ids',pa.list_(pa.int32()))
@@ -242,6 +244,8 @@ def pipeline():
     model = get_model(vocab_size, n_positions, device)
 
     loss_func = cross_entropy_language_model
+
+    quit()
 
     torch.manual_seed(0)
     train_config = TrainingConfig(
