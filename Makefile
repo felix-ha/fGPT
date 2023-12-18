@@ -14,3 +14,7 @@ docker_shell:
 pre_commit:
 	black . 
 	pytest --exitfirst
+
+.PHONY: data_pipeline
+data_pipeline:
+	python dask_pipeline.py --ratio=1.0 --full
