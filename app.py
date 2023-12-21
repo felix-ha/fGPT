@@ -77,7 +77,7 @@ if st.button("Generate"):
         max_n=300,
         choices_per_step=3,
         sample=True,
-        temperature=1,
+        temperature=0.1,
     )
 
     st.text_area("continued story by model", output, height=350)
