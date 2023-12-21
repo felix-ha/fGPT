@@ -1,6 +1,7 @@
 from main import get_model
 
 import os
+from pathlib import Path
 import torch
 import pandas as pd
 
@@ -8,9 +9,11 @@ from constants import *
 from data_prep import read_from_json, get_token_int_dicts
 from tokenizer import create_encoder, create_decoder
 from model import generate
+from main import get_model
+from dask_pipeline import load_vocabulary
 
 
-def load_model(vocab_size, n_positions):  
+def load_model(model_dict_file, vocab_size, n_positions):  
     model = get_model(vocab_size, n_positions, device="cpu")
 
     training_result_dict = torch.load(
@@ -22,19 +25,20 @@ def load_model(vocab_size, n_positions):
     return model
 
 
-model_dict_path = Path('/notebooks/fGPT/runs/fGPT/last/model.pt')
+model_dict_file = Path('/notebooks/fGPT/runs/fGPT/last/model.pt')
 vocabulary_file = Path('datapipeline').joinpath('token_to_int.json')
+dataset_info_path = Path('datapipeline').joinpath("dataset_info.json")
 
 token_to_int, int_to_token = load_vocabulary(vocabulary_file)
 encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
 decoder = create_decoder(int_to_token)
 stop_token_id = token_to_int[END_OF_TEXT]
 
-dataset_info = read_from_json(data_path.joinpath("dataset_info.json"))
+dataset_info = read_from_json(dataset_info_path)
 vocab_size = dataset_info["vocab_size"]
 n_positions = dataset_info["n_positions"]    
 
-model = load_model(vocab_size, n_positions)
+model = load_model(model_dict_file, vocab_size, n_positions)
 
 
 prompts = [
@@ -64,8 +68,6 @@ prompts = [
     'Diva was hungry, and wanted to bake a cake, but she did not have any sugar at home, so she decided to go ask around. She started walking and met a squirrel. She asked the squirrel, "Would you happen',
 ]
 
-prompts = ["If I throw a ball"]
-
 responses = []
 
 with torch.no_grad():
@@ -77,10 +79,10 @@ with torch.no_grad():
             encoder,
             decoder,
             stop_token_id=stop_token_id,
-            max_n=3,
-            choices_per_step=3,
+            max_n=500,
+            choices_per_step=1,
             sample=True,
-            temperature=1.5,
+            temperature=0.5,
         )
         
         responses.append(output)
@@ -90,6 +92,6 @@ with torch.no_grad():
         print(output)
         print('----------------------------')
 
-        
+
 result = pd.DataFrame({'prompt': prompts, 'response': responses})
 result.to_csv('evaluation.csv', sep=";")
