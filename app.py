@@ -2,11 +2,13 @@ import os
 import streamlit as st
 import gdown
 from constants import *
-from data_prep import read_from_json, get_token_int_dicts
+from data_prep import read_from_json
+from dask_pipeline import load_vocabulary
 from tokenizer import create_encoder, create_decoder
 from model import generate
 import torch
 from main import get_model
+import logging
 
 
 @st.cache_resource
@@ -30,17 +32,17 @@ if not os.path.exists(folder_downloads):
 urls = [
     os.getenv("URL_DATASET_INFO"),
     os.getenv("URL_TOKEN_TO_INT"),
-    os.getenv("URL_INT_TO_TOKEN"),
     os.getenv("URL_MODEL"),
 ]
 
-outputs = ["dataset_info.json", "token_to_int.json", "int_to_token.json", "model.pt"]
+outputs = ["dataset_info.json", "token_to_int.json", "model.pt"]
 for url, output in zip(urls, outputs):
     file = os.path.join(folder_downloads, output)
     if not os.path.isfile(file):
         gdown.download(url, file, quiet=False)
 
-token_to_int, int_to_token = get_token_int_dicts(folder_downloads)
+
+token_to_int, int_to_token = load_vocabulary(os.path.join(folder_downloads, "token_to_int.json"))
 dataset_info = read_from_json(os.path.join(folder_downloads, "dataset_info.json"))
 vocab_size = dataset_info["vocab_size"]
 n_positions = dataset_info["n_positions"]
@@ -65,6 +67,7 @@ A language model trained from scratch on [tiny stories](https://arxiv.org/abs/23
 prompt = st.text_input("Enter the beginning of a story...")
 
 if st.button("Generate"):
+
     output, _ = generate(
         model,
         prompt,
@@ -78,3 +81,8 @@ if st.button("Generate"):
     )
 
     st.text_area("continued story by model", output, height=350)
+
+    logging.info(f"""
+    promt {prompt}
+    output {output}
+    """)

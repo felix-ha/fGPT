@@ -151,9 +151,9 @@ def generate(
             logits_last = y_output[:, -1, :]
             logits_last /= temperature
             probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
-            logging.info(
-                f"Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}"
-            )
+            # logging.info(
+            #    f"Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}"
+            #)
             sorted_token_ids = torch.argsort(
                 probabilities_next_token, dim=-1, descending=True
             )
@@ -168,9 +168,9 @@ def generate(
             else:
                 token_id = torch.argmax(probabilities_next_token)
 
-            logging.info(
-                f"Probability of choosen token: {torch.max(probabilities_next_token).cpu().numpy()}"
-            )
+            #logging.info(
+            #    f"Probability of choosen token: {torch.max(probabilities_next_token).cpu().numpy()}"
+            #)
             x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
             iterations.append(iteration)
             if token_id == stop_token_id:
