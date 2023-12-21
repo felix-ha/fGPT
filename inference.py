@@ -2,6 +2,7 @@ from main import get_model
 
 import os
 import torch
+import pandas as pd
 
 from constants import *
 from data_prep import read_from_json, get_token_int_dicts
@@ -9,27 +10,31 @@ from tokenizer import create_encoder, create_decoder
 from model import generate
 
 
-folder_downloads = "datapipeline"
+def load_model(vocab_size, n_positions):  
+    model = get_model(vocab_size, n_positions, device="cpu")
+
+    training_result_dict = torch.load(
+        model_dict_file,
+        map_location=torch.device("cpu"),
+    )
+    model_state_dict = training_result_dict["model_state_dict"]
+    model.load_state_dict(model_state_dict)
+    return model
 
 
-token_to_int, int_to_token = get_token_int_dicts(folder_downloads)
-dataset_info = read_from_json(os.path.join(folder_downloads, "dataset_info.json"))
-vocab_size = dataset_info["vocab_size"]
-n_positions = dataset_info["n_positions"]
+model_dict_path = Path('/notebooks/fGPT/runs/fGPT/last/model.pt')
+vocabulary_file = Path('datapipeline').joinpath('token_to_int.json')
 
+token_to_int, int_to_token = load_vocabulary(vocabulary_file)
 encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
 decoder = create_decoder(int_to_token)
-
 stop_token_id = token_to_int[END_OF_TEXT]
 
-model = get_model(vocab_size, n_positions, device="cpu")
+dataset_info = read_from_json(data_path.joinpath("dataset_info.json"))
+vocab_size = dataset_info["vocab_size"]
+n_positions = dataset_info["n_positions"]    
 
-training_result_dict = torch.load(
-    os.path.join("runs/20231128_202432_fGPT/last", "model.pt"),
-    map_location=torch.device("cpu"),
-)
-model_state_dict = training_result_dict["model_state_dict"]
-model.load_state_dict(model_state_dict)
+model = load_model(vocab_size, n_positions)
 
 
 prompts = [
@@ -61,19 +66,30 @@ prompts = [
 
 prompts = ["If I throw a ball"]
 
-for prompt in prompts:
-    output, _ = generate(
-        model,
-        prompt,
-        encoder,
-        decoder,
-        stop_token_id=stop_token_id,
-        max_n=3,
-        choices_per_step=3,
-        sample=True,
-        temperature=1.5,
-    )
+responses = []
 
-    print(prompt)
-    print(output)
-    print()
+with torch.no_grad():
+    model.eval()
+    for prompt in prompts:
+        output, _ = generate(
+            model,
+            prompt,
+            encoder,
+            decoder,
+            stop_token_id=stop_token_id,
+            max_n=3,
+            choices_per_step=3,
+            sample=True,
+            temperature=1.5,
+        )
+        
+        responses.append(output)
+        
+
+        print(prompt)
+        print(output)
+        print('----------------------------')
+
+        
+result = pd.DataFrame({'prompt': prompts, 'response': responses})
+result.to_csv('evaluation.csv', sep=";")
