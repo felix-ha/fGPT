@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import torch
 import pandas as pd
+import math
+import numpy as np
 
 from constants import *
 from data_prep import read_from_json, get_token_int_dicts
@@ -11,6 +13,109 @@ from tokenizer import create_encoder, create_decoder
 from model import generate
 from main import get_model
 from dask_pipeline import load_vocabulary
+from pydantic import BaseModel
+from typing import List
+import functools 
+
+
+class Beam(BaseModel):
+    ids:  List[int]
+    probabilities: List[float]
+    
+    def __len__(self):
+        return len(self.ids)
+    
+    def product_proba(self):
+        return functools.reduce(lambda a, b: a * b, self.probabilities)
+    
+    def sum_log_prob(self, alpha):
+        if len(self.probabilities) == 0:
+            raise ValueError('No probablities available')
+        return  (1 / self.__len__() ** alpha) *sum(map(math.log, self.probabilities))
+
+
+def generate_beam(
+    model,
+    prompt,
+    encoder,
+    decoder,
+    stop_token_id,
+    max_n,
+    beam_size=2,
+    temperature=1.0,
+):
+
+    x_input = torch.tensor([encoder(prompt)])
+    response_idx = x_input.shape[1]
+
+    model.eval()
+    with torch.no_grad():
+        for i in range(max_n):
+            if i == 0:
+                beams = []
+                y_output = model(x_input)
+                logits_last = y_output[:, -1, :]
+                logits_last /= temperature
+                probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
+                sorted_token_ids = torch.argsort(
+                    probabilities_next_token, dim=-1, descending=True
+                )
+
+                for choice_idx in range(beam_size):
+                    token_id = sorted_token_ids[choice_idx].item()
+                    token_prob = probabilities_next_token[token_id].cpu().numpy().item()
+                    beams.append(Beam(ids=[token_id], probabilities=[token_prob]))
+                    
+            else:
+                beams_to_predict = beams[-beam_size:].copy()
+                n_vocab = logits_last.shape[1]
+        
+                cond_beam_probabilities = torch.empty(n_vocab * beam_size)
+                beam_probabilities = []
+                for idx in range(beam_size):
+                    beam_current = beams_to_predict[idx]
+                    tensor_to_append = torch.tensor(beam_current.ids).view(1, -1)
+                    x_current = torch.cat((x_input, tensor_to_append), dim=-1)
+                    y_output = model(x_current)
+                    logits_last = y_output[:, -1, :]
+                    logits_last /= temperature
+                    probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze() 
+                    beam_probabilities.append(probabilities_next_token)
+                    cond_beam_probabilities[(idx * n_vocab):((idx+1) * n_vocab)] = probabilities_next_token * beam_current.product_proba()               
+                    
+                sorted_token_ids = torch.argsort(
+                    cond_beam_probabilities, dim=-1, descending=True
+                )
+                
+                beam_ids = sorted_token_ids[0:beam_size] // n_vocab
+                token_ids_for_next_beam = sorted_token_ids % n_vocab
+                
+                for token_id, beam_id in zip(token_ids_for_next_beam.tolist(), beam_ids.tolist()):
+                    beam_current = beams_to_predict[beam_id]
+                
+                    token_prob = beam_probabilities[beam_id][token_id].cpu().numpy().item()
+                    new_ids = beam_current.ids.copy()
+                    new_ids.append(token_id)
+                    new_probabilities = beam_current.probabilities.copy()
+                    new_probabilities.append(token_prob)
+
+                    beams.append(Beam(ids=new_ids,
+                                      probabilities=new_probabilities
+                                     )
+                                )
+
+        len_final_candidate = max(map(lambda beam: len(beam), beams))
+        alpha = 3
+        
+        final_candidates = beams.copy()
+
+        sums = list(map(lambda beam: beam.sum_log_prob(alpha), final_candidates))
+        id_choosen = np.argmax(sums)
+        choosen_beam = final_candidates[id_choosen]
+        result =  decoder(choosen_beam.ids)
+        
+        return result
+
 
 
 def load_model(model_dict_file, vocab_size, n_positions):  
