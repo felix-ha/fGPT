@@ -169,8 +169,8 @@ def data_pipeline(data_path, ratio, full):
             wget.download(url, path_validation)
     else:
         logging.info("Using small dev dataset.")
-        path_train = "data/data_train.txt"
-        path_validation = "data/data_validation.txt"
+        path_train = Path("data/data_train.txt")
+        path_validation = Path("data/data_validation.txt")
 
     dataset_file = data_path.joinpath('dataset_train.parquet')
     vocabulary_file = data_path.joinpath('token_to_int.json')

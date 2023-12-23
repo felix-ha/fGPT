@@ -1,113 +1,151 @@
-"""
-This module contains a unit tests for the complete data pipeline.
-As a final test, the output will be fed into the transformer.
-"""
-
-import pytest
-import os
+from pathlib import Path
 import tempfile
-from data_pipeline import pipeline
-from dionysus.training import TrainingConfig, train
-from model import (
-    LanguageModelDataset,
-    simpleGPT,
-    cross_entropy_language_model,
-    generate,
-)
-from data_prep import read_from_json, get_token_int_dicts
+import pandas as pd
+
+from dask_pipeline import data_pipeline
+from data_prep import read_from_json
 from constants import *
-from torch.utils.data import DataLoader
-from data_prep import collate_fn
-from tokenizer import create_encoder, create_decoder
+
+token_to_int_expected = {
+    ".": 0,
+    "the": 1,
+    "was": 2,
+    "in": 3,
+    "Tom": 4,
+    "Jenny": 5,
+    "living": 6,
+    "room": 7,
+    "bathroom": 8,
+    "bedroom": 9,
+    "cleaning": 10,
+    "cooking": 11,
+    "kitchen": 12,
+    "playing": 13,
+    "running": 14,
+    "sleeping": 15,
+    "<|unk|>": 16,
+    "<|endoftext|>": 17,
+}
+dataset_info_expected = {
+    "vocab_size": 18,
+    "n_positions": 9,
+    "n_tokens_training:": 42,
+    "n_stories": 6,
+}
+
+df_tokenized_train_expected = pd.DataFrame(
+    {
+        "text_clean": {
+            0: "Jenny was playing in the living room.",
+            1: "Jenny was running in the living room.",
+            2: "Tom was sleeping in the bedroom.",
+            3: "Tom was cooking in the kitchen.",
+            4: "Tom was cleaning the bathroom.",
+            5: "",
+        },
+        "tokens": {
+            0: ["Jenny", "was", "playing", "in", "the", "living", "room", "."],
+            1: ["Jenny", "was", "running", "in", "the", "living", "room", "."],
+            2: ["Tom", "was", "sleeping", "in", "the", "bedroom", "."],
+            3: ["Tom", "was", "cooking", "in", "the", "kitchen", "."],
+            4: ["Tom", "was", "cleaning", "the", "bathroom", "."],
+            5: [],
+        },
+    }
+)
+
+df_tokenized_valid_expected = pd.DataFrame(
+    {
+        "text_clean": {
+            0: "Jenny was sleeping in the bedroom.",
+            1: "Tom was playing in the living room.",
+            2: "Tom was running in the living room.",
+            3: "",
+        },
+        "tokens": {
+            0: ["Jenny", "was", "sleeping", "in", "the", "bedroom", "."],
+            1: ["Tom", "was", "playing", "in", "the", "living", "room", "."],
+            2: ["Tom", "was", "running", "in", "the", "living", "room", "."],
+            3: [],
+        },
+    }
+)
+
+df_train_expected = pd.DataFrame(
+    {
+        "text_clean": {
+            0: "Jenny was playing in the living room.",
+            1: "Jenny was running in the living room.",
+            2: "Tom was sleeping in the bedroom.",
+            3: "Tom was cooking in the kitchen.",
+            4: "Tom was cleaning the bathroom.",
+            5: "",
+        },
+        "ids": {
+            0: [5, 2, 13, 3, 1, 6, 7, 0, 17],
+            1: [5, 2, 14, 3, 1, 6, 7, 0, 17],
+            2: [4, 2, 15, 3, 1, 9, 0, 17],
+            3: [4, 2, 11, 3, 1, 12, 0, 17],
+            4: [4, 2, 10, 1, 8, 0, 17],
+            5: [17],
+        },
+    }
+)
+
+df_valid_expected = pd.DataFrame(
+    {
+        "text_clean": {
+            0: "Jenny was sleeping in the bedroom.",
+            1: "Tom was playing in the living room.",
+            2: "Tom was running in the living room.",
+            3: "",
+        },
+        "ids": {
+            0: [5, 2, 15, 3, 1, 9, 0, 17],
+            1: [4, 2, 13, 3, 1, 6, 7, 0, 17],
+            2: [4, 2, 14, 3, 1, 6, 7, 0, 17],
+            3: [17],
+        },
+    }
+)
 
 
-with tempfile.TemporaryDirectory() as path_data:
+def test_training():
+    with tempfile.TemporaryDirectory() as path_data:
+        dataset_info_file = Path(path_data).joinpath("dataset_info.json")
+        vocabulary_file = Path(path_data).joinpath("token_to_int.json")
+        tokenized_train_file = Path(path_data).joinpath("tokenized_train.parquet")
+        tokenized_valid_file = Path(path_data).joinpath("tokenized_valid.parquet")
+        dataset_train_file = Path(path_data).joinpath("dataset_train.parquet")
+        dataset_vaild_file = Path(path_data).joinpath("dataset_valid.parquet")
 
-    @pytest.fixture
-    def data():
-        pipeline("data/data_train.txt", "data/data_validation.txt", path_data)
+        data_pipeline(Path(path_data), ratio=1.0, full=False)
 
-    def test_training(data):
-        with tempfile.TemporaryDirectory() as temp_dir:
-            token_to_int, int_to_token = get_token_int_dicts(path_data)
-            texts_ids_train = read_from_json(
-                os.path.join(path_data, "texts_ids_train.json")
-            )
-            texts_ids_validation = read_from_json(
-                os.path.join(path_data, "texts_ids_validation.json")
-            )
+        assert read_from_json(vocabulary_file) == token_to_int_expected
+        assert read_from_json(dataset_info_file) == dataset_info_expected
 
-            dataset_info = read_from_json(os.path.join(path_data, "dataset_info.json"))
-            vocab_size = dataset_info["vocab_size"]
-            n_positions = dataset_info["n_positions"]
+        df_expected = df_tokenized_train_expected.explode("tokens")
+        df_actual = pd.read_parquet(tokenized_train_file).explode("tokens")
+        assert df_expected.equals(
+            df_actual
+        ), "tokenized_train.parquet is not as expected"
 
-            assert len(token_to_int) == 25
-            assert len(int_to_token) == 25
-            assert len(texts_ids_train) == 5
-            assert len(texts_ids_validation) == 3
+        df_expected = df_tokenized_valid_expected.explode("tokens")
+        df_actual = pd.read_parquet(tokenized_valid_file).explode("tokens")
+        assert df_expected.equals(
+            df_actual
+        ), "tokenized_valid.parquet is not as expected"
 
-            assert n_positions == 9
-            assert vocab_size == 25
+        df_expected = df_train_expected.explode("ids")
+        df_actual = pd.read_parquet(dataset_train_file).explode("ids")
+        df_actual["text_clean"] = df_actual["text_clean"].astype(str)
+        assert df_expected.equals(df_actual), "dataset_train.parquet is not as expected"
 
-            device = "cpu"
+        df_expected = df_valid_expected.explode("ids")
+        df_actual = pd.read_parquet(dataset_vaild_file).explode("ids")
+        df_actual["text_clean"] = df_actual["text_clean"].astype(str)
+        assert df_expected.equals(df_actual), "dataset_valid.parquet is not as expected"
 
-            encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
-            decoder = create_decoder(int_to_token)
 
-            dataset_train = LanguageModelDataset(texts_ids_train)
-            dataset_validation = LanguageModelDataset(texts_ids_validation)
-
-            dataloader_train = DataLoader(
-                dataset_train, batch_size=2, shuffle=True, collate_fn=collate_fn
-            )
-            dataloader_validation = DataLoader(
-                dataset_validation, batch_size=2, shuffle=False, collate_fn=collate_fn
-            )
-
-            assert len(dataloader_train) == 3
-            assert len(dataloader_validation) == 2
-
-            stop_token_id = token_to_int[END_OF_TEXT]
-
-            model = simpleGPT(
-                vocab_size=vocab_size,
-                n_embd=8,
-                num_heads=4,
-                block_size=n_positions,
-                n_layer=2,
-                dropout=0.1,
-                device=device,
-            )
-
-            loss_func = cross_entropy_language_model
-
-            train_config = TrainingConfig(
-                model=model,
-                epochs=2,
-                loss_func=loss_func,
-                training_loader=dataloader_train,
-                validation_loader=dataloader_validation,
-                optimizer="AdamW",
-                device=device,
-                force_write_logs=False,
-                save_model=True,
-                tar_result=True,
-                save_path=temp_dir,
-                model_name="GPT-2",
-                progress_bar=True,
-            )
-
-            train(train_config)
-
-            prompt = "Tom was"
-            output, choices = generate(
-                model,
-                prompt,
-                encoder,
-                decoder,
-                stop_token_id=stop_token_id,
-                max_n=3,
-                choices_per_step=3,
-            )
-
-            assert choices.shape[1] == 4
+if __name__ == "__main__":
+    test_training()
