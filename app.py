@@ -30,14 +30,6 @@ folder_downloads = "downloads"
 if not os.path.exists(folder_downloads):
     os.makedirs(folder_downloads)
 
-URL_DATASET_INFO="https://drive.google.com/uc?id=1lwXr8i9KHbTG7Q0RNIwdr-Xy9g7gNb4r"
-URL_TOKEN_TO_INT="https://drive.google.com/uc?id=1Qw_C7znTe1NALvlsfwFYAXLi-eW0K0I4"
-URL_MODEL="https://drive.google.com/uc?id=1D5CiBkdHNXeMgpXZVBLziHjp5Q0B6IwV"
-
-# set env vars
-os.environ["URL_DATASET_INFO"] = URL_DATASET_INFO
-os.environ["URL_TOKEN_TO_INT"] = URL_TOKEN_TO_INT
-os.environ["URL_MODEL"] = URL_MODEL
 
 urls = [
     os.getenv("URL_DATASET_INFO"),
