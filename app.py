@@ -69,7 +69,7 @@ A language model trained from scratch on [tiny stories](https://arxiv.org/abs/23
 settings = st.checkbox('Settings')
 
 sample = False
-max_n=300,
+max_n=300
 top_k = None
 top_p = None
 n_beams = None
