@@ -9,6 +9,7 @@ from model import generate
 import torch
 from main import get_model
 import logging
+import time
 
 
 @st.cache_resource
@@ -28,6 +29,7 @@ folder_downloads = "downloads"
 
 if not os.path.exists(folder_downloads):
     os.makedirs(folder_downloads)
+
 
 urls = [
     os.getenv("URL_DATASET_INFO"),
@@ -64,9 +66,45 @@ A language model trained from scratch on [tiny stories](https://arxiv.org/abs/23
 """
 )
 
+settings = st.checkbox('Settings')
+
+sample = False
+max_n=300
+top_k = None
+top_p = None
+n_beams = None
+temperature = 1.0
+strategy = "gready"
+
+if settings:
+    strategy = st.radio(
+    "sampling strategy",
+    ["gready", "top-k", "top-p", "beam search"],
+            captions = ["gready sampling",
+                         "top-k sampling", 
+                         "top-p sampling",
+                         "beam search - warning: experimental feature"])
+    
+    max_n = st.slider('max token to generate', min_value=1, max_value=1000, value=300)
+    temperature = st.slider('temperature', min_value=0.0, max_value=5.0, value=1.0)
+
+    if strategy == 'gready':
+        sample = st.checkbox('sample')
+    elif strategy == 'top-k':
+        top_k = st.slider('top-k', min_value=1, max_value=20, value=5)
+    elif strategy == 'top-p':
+        top_p = st.slider('top-p', min_value=0.01, max_value=1.0, value=0.8)
+    elif strategy == 'beam search':
+        n_beams = st.slider('number of beams', min_value=1, max_value=10, value=2)
+
+    
+
 prompt = st.text_input("Enter the beginning of a story...")
 
 if st.button("Generate"):
+
+    # start mesuaring time with perf_counter
+    start = time.perf_counter()
 
     output, _ = generate(
         model,
@@ -74,14 +112,19 @@ if st.button("Generate"):
         encoder,
         decoder,
         stop_token_id=stop_token_id,
-        max_n=300,
+        max_n=max_n,
         choices_per_step=3,
-        sample=True,
-        temperature=0.1,
+        sample=sample,
+        temperature=temperature,
+        top_k=top_k,
+        top_p=top_p
     )
+
+    end = time.perf_counter()
 
     st.text_area("continued story by model", output, height=350)
 
+    st.write(f"Time to generate: {end - start:0.1f} seconds")
     logging.info(f"""
     promt {prompt}
     output {output}

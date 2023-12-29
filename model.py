@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset
-import logging
+from constants import END_OF_TEXT
 
 
 class Head(nn.Module):
@@ -137,7 +137,12 @@ def generate(
     choices_per_step,
     sample=False,
     temperature=1.0,
+    top_k=None,
+    top_p=None
 ):
+    if top_k and top_p:
+        raise ValueError("top_k and top_p cannot be used together")
+    
     response_ids = []
     x_input = torch.tensor([encoder(prompt)])
     response_idx = x_input.shape[1]
@@ -149,11 +154,10 @@ def generate(
             iteration["Input"] = decoder(x_input.squeeze().tolist())
             y_output = model(x_input)
             logits_last = y_output[:, -1, :]
-            logits_last /= temperature
+            if temperature > 0:
+                logits_last /= temperature
             probabilities_next_token = torch.softmax(logits_last, dim=-1).squeeze()
-            # logging.info(
-            #    f"Probability of stop token {decoder([stop_token_id])=}: {probabilities_next_token[stop_token_id]}"
-            #)
+
             sorted_token_ids = torch.argsort(
                 probabilities_next_token, dim=-1, descending=True
             )
@@ -163,14 +167,24 @@ def generate(
                 token_choice = f"{decoder([token_id])} ({100 * token_prob:.2f}%)"
                 iteration[f"Choice {choice_idx+1}"] = token_choice
 
-            if sample:
+            if top_k:
+                probabilities_next_token[probabilities_next_token < torch.topk(probabilities_next_token, top_k)[0][..., -1, None]] = 0
+                probabilities_next_token /= probabilities_next_token.sum()
+            elif top_p:
+                sorted_probs, sorted_indices = torch.sort(probabilities_next_token, descending=True)
+                cumulative_probs = torch.cumsum(sorted_probs, dim=-1)
+                sorted_indices_to_remove = cumulative_probs > top_p
+                sorted_indices_to_remove[..., 1:] = sorted_indices_to_remove[..., :-1].clone()
+                sorted_indices_to_remove[..., 0] = 0
+                sorted_indices_to_remove = sorted_indices_to_remove.to(torch.bool)
+                sorted_probs[sorted_indices_to_remove] = 0
+                probabilities_next_token /= probabilities_next_token.sum()
+
+            if sample or top_k or top_p:
                 token_id = torch.multinomial(probabilities_next_token, 1)
             else:
                 token_id = torch.argmax(probabilities_next_token)
 
-            #logging.info(
-            #    f"Probability of choosen token: {torch.max(probabilities_next_token).cpu().numpy()}"
-            #)
             x_input = torch.cat((x_input, token_id.reshape(1, -1)), dim=1)
             iterations.append(iteration)
             if token_id == stop_token_id:
@@ -180,7 +194,7 @@ def generate(
     result = decoder(response_ids.squeeze().tolist())
     if token_id != stop_token_id:
         result = result + f"(reached maximium tokens to generate: {max_n})"
-    result = result.replace(' . ', '. ').replace(' , ', ', ').replace(' ! ', '! ').replace(' ? ', '? ').replace(" '", "'")
+    result = result.replace(' . ', '. ').replace(' , ', ', ').replace(' ! ', '! ').replace(' ? ', '? ').replace(" '", "'").replace(END_OF_TEXT, "")
     return result, pd.DataFrame(iterations)
 
 
