@@ -2,9 +2,23 @@ from pathlib import Path
 import tempfile
 import pandas as pd
 
-from dask_pipeline import data_pipeline
+from dask_pipeline import data_pipeline, get_texts_ids, load_vocabulary
 from data_prep import read_from_json
 from constants import *
+
+from dionysus.training import TrainingConfig, train
+import torch
+from torch.utils.data import DataLoader
+from data_prep import collate_fn
+from model import (
+    LanguageModelDataset,
+    simpleGPT,
+    cross_entropy_language_model,
+    generate
+)
+from main import get_model
+from tokenizer import create_encoder, create_decoder
+from inference import load_model
 
 token_to_int_expected = {
     ".": 0,
@@ -145,6 +159,95 @@ def test_training():
         df_actual = pd.read_parquet(dataset_vaild_file).explode("ids")
         df_actual["text_clean"] = df_actual["text_clean"].astype(str)
         assert df_expected.equals(df_actual), "dataset_valid.parquet is not as expected"
+
+
+        data_path = Path(path_data)
+        texts_ids_train = get_texts_ids(data_path.joinpath('dataset_train.parquet'))
+        texts_ids_validation = get_texts_ids(data_path.joinpath('dataset_valid.parquet'))
+
+        vocabulary_file = data_path.joinpath('token_to_int.json')
+        token_to_int, int_to_token = load_vocabulary(vocabulary_file)
+        dataset_info = read_from_json(data_path.joinpath("dataset_info.json"))
+
+        vocab_size = dataset_info["vocab_size"]
+        n_positions = dataset_info["n_positions"]
+
+        dataset_train = LanguageModelDataset(texts_ids_train)
+        dataset_validation = LanguageModelDataset(texts_ids_validation)
+
+        dataloader_train = DataLoader(
+            dataset_train, batch_size=8, shuffle=True, collate_fn=collate_fn
+        )
+        dataloader_validation = DataLoader(
+            dataset_validation, batch_size=8, shuffle=False, collate_fn=collate_fn
+        )
+
+        stop_token_id = token_to_int[END_OF_TEXT]
+
+        device = "cpu"
+
+        model = get_model(vocab_size, n_positions, device)
+
+        loss_func = cross_entropy_language_model
+
+
+        with tempfile.TemporaryDirectory() as save_path:
+            torch.manual_seed(0)
+            model_name = "fGPT"
+            checkpoint_path = Path(save_path).joinpath(model_name).joinpath('last/model.pt')
+            train_config = TrainingConfig(
+                model=model,
+                epochs=2,
+                loss_func=loss_func,
+                training_loader=dataloader_train,
+                validation_loader=dataloader_validation,
+                optimizer="AdamW",
+                device=device,
+                force_write_logs=False,
+                save_model=True,
+                tar_result=True,
+                save_path=save_path,
+                model_name=model_name,
+                progress_bar=True,
+                checkpoint_step=1,
+                checkpoint_step_batch=1,
+                checkpoint_path = checkpoint_path if checkpoint_path.is_file() else None
+            )
+
+            train(train_config)
+
+
+            model_dict_file = checkpoint_path
+            dataset_info_path = dataset_info_file
+
+            token_to_int, int_to_token = load_vocabulary(vocabulary_file)
+            encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
+            decoder = create_decoder(int_to_token)
+            stop_token_id = token_to_int[END_OF_TEXT]
+
+            dataset_info = read_from_json(dataset_info_path)
+            vocab_size = dataset_info["vocab_size"]
+            n_positions = dataset_info["n_positions"]    
+
+            model = load_model(model_dict_file, vocab_size, n_positions)
+            
+            with torch.no_grad():
+                model.eval()
+                prompt = "Tom was "
+                output, _ = generate(
+                    model,
+                    prompt,
+                    encoder,
+                    decoder,
+                    stop_token_id=stop_token_id,
+                    max_n=5,
+                    choices_per_step=1,
+                    sample=True,
+                    temperature=1,
+                )
+
+            assert len(output) > 0
+
 
 
 if __name__ == "__main__":
