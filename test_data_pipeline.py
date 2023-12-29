@@ -66,7 +66,7 @@ df_tokenized_train_expected = pd.DataFrame(
             5: [],
         },
     }
-)
+).convert_dtypes()
 
 df_tokenized_valid_expected = pd.DataFrame(
     {
@@ -83,7 +83,7 @@ df_tokenized_valid_expected = pd.DataFrame(
             3: [],
         },
     }
-)
+).convert_dtypes()
 
 df_train_expected = pd.DataFrame(
     {
@@ -133,7 +133,7 @@ def test_training():
         dataset_train_file = Path(path_data).joinpath("dataset_train.parquet")
         dataset_vaild_file = Path(path_data).joinpath("dataset_valid.parquet")
 
-        data_pipeline(Path(path_data), ratio=1.0, full=False)
+        data_pipeline(Path(path_data), full=False)
 
         assert read_from_json(vocabulary_file) == token_to_int_expected
         assert read_from_json(dataset_info_file) == dataset_info_expected
@@ -143,7 +143,6 @@ def test_training():
         assert df_expected.equals(
             df_actual
         ), "tokenized_train.parquet is not as expected"
-
         df_expected = df_tokenized_valid_expected.explode("tokens")
         df_actual = pd.read_parquet(tokenized_valid_file).explode("tokens")
         assert df_expected.equals(

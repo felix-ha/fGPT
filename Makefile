@@ -17,7 +17,7 @@ pre_commit:
 
 .PHONY: data_pipeline
 data_pipeline:
-	python dask_pipeline.py --ratio=1.0 --full
+	python dask_pipeline.py --full
 
 .PHONY: train
 train:

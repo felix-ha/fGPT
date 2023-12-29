@@ -15,15 +15,37 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def load_file(path, ratio=1.0):
+def load_file(input_file, output_path, n_texts_per_partition):
     lines = []
-    with open(path, "r", encoding="utf8") as file:
+    n_texts_current = 0
+    partition = 0
+
+    schema = pa.schema([
+                ('text_raw', pa.string()),
+                ('partition',pa.int32())
+            ])
+
+    with open(input_file, "r", encoding="utf8") as file:
         for line in file:
             lines.append(line.strip() + "\n")
-    if ratio < 1.0:
-        lines = lines[:int(len(lines) * ratio)]
-    logging.info(f"Loaded {len(lines)} lines from {path}.")
-    return "".join(lines)
+            if END_OF_TEXT in line:
+                n_texts_current+=1
+            if n_texts_current == n_texts_per_partition:
+                write_partition(lines, schema, partition, output_path)
+                lines = []
+                n_texts_current = 0
+                partition+=1
+        # write last lines
+        write_partition(lines, schema, partition, output_path)
+
+
+def write_partition(lines, schema, partition, output_path):
+    texts = "".join(lines).split(END_OF_TEXT)
+    # TODO: check if partition by column is possiple/usefull
+    data = [{"text_raw": text, "partition": partition} for text in texts]
+    df = dd.from_pandas(pd.DataFrame(data), npartitions=1)
+    df.to_parquet(output_path.joinpath(f'{partition}.parquet'), schema=schema)
+
 
 
 nlp = English()
@@ -52,22 +74,12 @@ def get_texts_ids(dataset_file):
     return texts_ids
 
 
-
-def get_model(vocab_size, n_positions, device):
-    return simpleGPT(
-        vocab_size=vocab_size,
-        n_embd=768,
-        num_heads=4,
-        block_size=n_positions,
-        n_layer=4,
-        dropout=0.1,
-        device=device,
-    )
-
-
-def datapipeline(input_file, output_path, train, n_vocab, ratio=1.0, partition_size="100MB"):
+def datapipeline(input_file, output_path, train, n_vocab, n_texts_per_partition=100_000, partition_size="100MB"):
     prefix = "train" if train else "valid"
     output_path.mkdir(parents=True, exist_ok=True)
+
+    raw_file = 'raw_train.parquet' if train else 'raw_valid.parquet'
+    raw_file = output_path.joinpath(raw_file)
 
     tokenized_file = 'tokenized_train.parquet' if train else 'tokenized_valid.parquet'
     tokenized_file = output_path.joinpath(tokenized_file)
@@ -76,13 +88,10 @@ def datapipeline(input_file, output_path, train, n_vocab, ratio=1.0, partition_s
     dataset_file = output_path.joinpath(dataset_file)
     vocabulary_file = output_path.joinpath('token_to_int.json')
 
-
-    texts_string = load_file(input_file, ratio=ratio)
-    texts = texts_string.split(END_OF_TEXT)
-    data = [{"text_raw": text} for text in texts]
-    logging.info(f'loaded {len(data)} stories')
-    del texts
-    df = dd.from_pandas(pd.DataFrame(data), npartitions=10).repartition(partition_size=partition_size)
+    load_file(input_file, raw_file, n_texts_per_partition)
+    logging.info('written raw data')
+    df = dd.read_parquet(raw_file, dtype_backend="pyarrow").repartition(partition_size=partition_size)
+    logging.info(f'{len(df)=}')
 
     df['text_clean'] = df['text_raw'].str.strip()
     for char, replacement in CHARACTER_REPLACEMENTS.items():
@@ -151,7 +160,7 @@ def create_dataset_info(dataset_file, vocabulary_file, output_path):
         write_to_json(dataset_info, output_path.joinpath("dataset_info.json"))
 
 
-def data_pipeline(data_path, ratio, full):
+def data_pipeline(data_path, full):
     n_vocab = 10_000
     partition_size="100MB"
 
@@ -169,15 +178,15 @@ def data_pipeline(data_path, ratio, full):
             wget.download(url, path_validation)
     else:
         logging.info("Using small dev dataset.")
-        path_train = Path("data/data_train.txt")
-        path_validation = Path("data/data_validation.txt")
+        path_train = "data/data_train.txt"
+        path_validation = "data/data_validation.txt"
 
     dataset_file = data_path.joinpath('dataset_train.parquet')
     vocabulary_file = data_path.joinpath('token_to_int.json')
 
-    datapipeline(path_train, data_path, train=True, n_vocab=n_vocab, ratio=ratio, partition_size=partition_size)
+    datapipeline(path_train, data_path, train=True, n_vocab=n_vocab, partition_size=partition_size)
     create_dataset_info(dataset_file, vocabulary_file, data_path)
-    datapipeline(path_validation, data_path, train=False, n_vocab=n_vocab, ratio=ratio, partition_size=partition_size)
+    datapipeline(path_validation, data_path, train=False, n_vocab=n_vocab, partition_size=partition_size)
 
 
 if __name__ == "__main__":
@@ -188,14 +197,8 @@ if __name__ == "__main__":
         action="store_true",
         help="Use full TinyStores dataset instead of the small one.",
     )
-    parser.add_argument(
-        "--ratio",
-        default=1.0,
-        type=float,
-        help="Ratio of the data to use for processing.",
-    )
     args = parser.parse_args()
 
     data_path = Path('datapipeline')
 
-    data_pipeline(data_path, args.ratio, args.full)
+    data_pipeline(data_path, args.full)
