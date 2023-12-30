@@ -129,10 +129,8 @@ def cross_entropy_language_model(logits, targets):
 
 def generate(
     model,
+    tokenizer,
     prompt,
-    encoder,
-    decoder,
-    stop_token_id,
     max_n,
     choices_per_step,
     sample=False,
@@ -143,15 +141,16 @@ def generate(
     if top_k and top_p:
         raise ValueError("top_k and top_p cannot be used together")
     
+    stop_token_id = tokenizer.convert_tokens_to_ids(END_OF_TEXT)
     response_ids = []
-    x_input = torch.tensor([encoder(prompt)])
+    x_input = tokenizer.encode(prompt, return_tensors="pt")  
     response_idx = x_input.shape[1]
     iterations = []
     model.eval()
     with torch.no_grad():
         for _ in range(max_n):
             iteration = dict()
-            iteration["Input"] = decoder(x_input.squeeze().tolist())
+            iteration["Input"] = tokenizer.decode(x_input.squeeze().tolist())
             y_output = model(x_input)
             logits_last = y_output[:, -1, :]
             if temperature > 0:
@@ -164,7 +163,7 @@ def generate(
             for choice_idx in range(choices_per_step):
                 token_id = sorted_token_ids[choice_idx].item()
                 token_prob = probabilities_next_token[token_id].cpu().numpy()
-                token_choice = f"{decoder([token_id])} ({100 * token_prob:.2f}%)"
+                token_choice = f"{tokenizer.decode([token_id])} ({100 * token_prob:.2f}%)"
                 iteration[f"Choice {choice_idx+1}"] = token_choice
 
             if top_k:
@@ -191,10 +190,9 @@ def generate(
                 break
 
     response_ids = x_input[:, response_idx:]
-    result = decoder(response_ids.squeeze().tolist())
+    result = tokenizer.decode(response_ids.squeeze().tolist())
     if token_id != stop_token_id:
         result = result + f"(reached maximium tokens to generate: {max_n})"
-    result = result.replace(' . ', '. ').replace(' , ', ', ').replace(' ! ', '! ').replace(' ? ', '? ').replace(" '", "'").replace(END_OF_TEXT, "")
     return result, pd.DataFrame(iterations)
 
 

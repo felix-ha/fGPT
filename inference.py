@@ -8,14 +8,13 @@ import math
 import numpy as np
 
 from constants import *
-from data_prep import read_from_json, get_token_int_dicts
-from tokenizer import create_encoder, create_decoder
+from data_prep import read_from_json 
 from model import generate
 from main import get_model
-from dask_pipeline import load_vocabulary
 from pydantic import BaseModel
 from typing import List
 import functools 
+from transformers import AutoTokenizer
 
 
 class Beam(BaseModel):
@@ -131,19 +130,16 @@ def load_model(model_dict_file, vocab_size, n_positions):
 
 
 if __name__ == "__main__":
-    model_dict_file = Path('/notebooks/fGPT/runs/fGPT/last/model.pt')
-    vocabulary_file = Path('datapipeline').joinpath('token_to_int.json')
-    dataset_info_path = Path('datapipeline').joinpath("dataset_info.json")
-
-    token_to_int, int_to_token = load_vocabulary(vocabulary_file)
-    encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
-    decoder = create_decoder(int_to_token)
-    stop_token_id = token_to_int[END_OF_TEXT]
+    model_dict_file = Path('runs/fGPT/last/model.pt')
+    data_path = Path('datapipeline')
+    dataset_info_path = data_path.joinpath("dataset_info.json")
+    tokenizer_path = data_path.joinpath("tokenizer")
 
     dataset_info = read_from_json(dataset_info_path)
     vocab_size = dataset_info["vocab_size"]
     n_positions = dataset_info["n_positions"]    
 
+    tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     model = load_model(model_dict_file, vocab_size, n_positions)
 
 
@@ -181,10 +177,8 @@ if __name__ == "__main__":
         for prompt in prompts:
             output, _ = generate(
                 model,
+                tokenizer,
                 prompt,
-                encoder,
-                decoder,
-                stop_token_id=stop_token_id,
                 max_n=500,
                 choices_per_step=1,
                 sample=True,
