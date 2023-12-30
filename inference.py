@@ -1,6 +1,5 @@
 from main import get_model
 
-import os
 from pathlib import Path
 import torch
 import pandas as pd
@@ -15,7 +14,6 @@ from pydantic import BaseModel
 from typing import List
 import functools 
 from transformers import AutoTokenizer
-from tokenizers.processors import TemplateProcessing
 
 
 class Beam(BaseModel):

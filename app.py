@@ -1,23 +1,22 @@
-import os
+from pathlib import Path
 import streamlit as st
 import gdown
 from constants import *
 from data_prep import read_from_json
-from dask_pipeline import load_vocabulary
-from tokenizer import create_encoder, create_decoder
 from model import generate
 import torch
 from main import get_model
 import logging
 import time
+from transformers import AutoTokenizer
 
 
 @st.cache_resource
-def load_model(vocab_size, n_positions):
+def load_model(model_dict_file, vocab_size, n_positions):
     model = get_model(vocab_size, n_positions, device="cpu")
 
     training_result_dict = torch.load(
-        os.path.join(folder_downloads, "model.pt"), map_location=torch.device("cpu")
+        model_dict_file, map_location=torch.device("cpu")
     )
     model_state_dict = training_result_dict["model_state_dict"]
     model.load_state_dict(model_state_dict)
@@ -25,36 +24,23 @@ def load_model(vocab_size, n_positions):
     return model
 
 
-folder_downloads = "downloads"
+folder_downloads = Path("model")
 
-if not os.path.exists(folder_downloads):
-    os.makedirs(folder_downloads)
+if not folder_downloads.exists():
+    folder_downloads.mkdir(parents=True, exist_ok=True)
+    id = "12tKDt3vEHz4uKqiDWOBM2XaeAhaTOoNt"
+    gdown.download_folder(id=id, quiet=False, use_cookies=False)
 
+model_dict_file = folder_downloads.joinpath('model.pt')
+dataset_info_path = folder_downloads.joinpath("dataset_info.json")
+tokenizer_path = folder_downloads.joinpath("tokenizer")
 
-urls = [
-    os.getenv("URL_DATASET_INFO"),
-    os.getenv("URL_TOKEN_TO_INT"),
-    os.getenv("URL_MODEL"),
-]
-
-outputs = ["dataset_info.json", "token_to_int.json", "model.pt"]
-for url, output in zip(urls, outputs):
-    file = os.path.join(folder_downloads, output)
-    if not os.path.isfile(file):
-        gdown.download(url, file, quiet=False)
-
-
-token_to_int, int_to_token = load_vocabulary(os.path.join(folder_downloads, "token_to_int.json"))
-dataset_info = read_from_json(os.path.join(folder_downloads, "dataset_info.json"))
+dataset_info = read_from_json(dataset_info_path)
 vocab_size = dataset_info["vocab_size"]
-n_positions = dataset_info["n_positions"]
+n_positions = dataset_info["n_positions"]    
 
-encoder = create_encoder(token_to_int, END_OF_TEXT, TOKEN_TO_REMOVE, UNK)
-decoder = create_decoder(int_to_token)
-
-stop_token_id = token_to_int[END_OF_TEXT]
-
-model = load_model(vocab_size, n_positions)
+tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+model = load_model(model_dict_file, vocab_size, n_positions)
 
 st.write(
     """
@@ -108,10 +94,8 @@ if st.button("Generate"):
 
     output, _ = generate(
         model,
+        tokenizer,
         prompt,
-        encoder,
-        decoder,
-        stop_token_id=stop_token_id,
         max_n=max_n,
         choices_per_step=3,
         sample=sample,
