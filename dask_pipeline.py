@@ -100,7 +100,8 @@ def datapipeline(
     if train:
         tokenizer = GPT2TokenizerFast.from_pretrained("gpt2", cache_dir=hf_dir)
         tokenizer = tokenizer.train_new_from_iterator(
-            text_iterator=batch_iterator(text_file, 1), vocab_size=n_vocab
+            # TODO: fix hardcoded number of partitions use (28)
+            text_iterator=batch_iterator(text_file, 28), vocab_size=n_vocab
         )
         tokenizer.save_pretrained(tokenizer_path, cache_dir=hf_dir)
 
