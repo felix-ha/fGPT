@@ -65,11 +65,11 @@ strategy = "gready"
 if settings:
     strategy = st.radio(
     "sampling strategy",
-    ["gready", "top-k", "top-p", "beam search"],
+    ["gready", "top-k", "top-p" ],
             captions = ["gready sampling",
                          "top-k sampling", 
-                         "top-p sampling",
-                         "beam search - warning: experimental feature"])
+                         "top-p sampling"]
+                         )
     
     max_n = st.slider('max token to generate', min_value=1, max_value=1000, value=300)
     temperature = st.slider('temperature', min_value=0.0, max_value=5.0, value=1.0)
@@ -80,16 +80,12 @@ if settings:
         top_k = st.slider('top-k', min_value=1, max_value=20, value=5)
     elif strategy == 'top-p':
         top_p = st.slider('top-p', min_value=0.01, max_value=1.0, value=0.8)
-    elif strategy == 'beam search':
-        n_beams = st.slider('number of beams', min_value=1, max_value=10, value=2)
 
-    
 
 prompt = st.text_input("Enter the beginning of a story...")
 
 if st.button("Generate"):
 
-    # start mesuaring time with perf_counter
     start = time.perf_counter()
 
     output, _ = generate(
