@@ -102,10 +102,10 @@ def datapipeline(
             single=f"{BEGIN_OF_TEXT} $0",
             special_tokens=[(BEGIN_OF_TEXT, 1), (END_OF_TEXT, 0), (UNK, 2)]
         )
+        n_partitions = len([f for f in text_file.iterdir() if f.is_dir()])
         tokenizer = tokenizer.train_new_from_iterator(
-            # TODO: fix hardcoded number of partitions use (28)
-            text_iterator=batch_iterator(text_file, 1),
-            vocab_size=n_vocab,
+            text_iterator = batch_iterator(text_file, n_partitions),
+            vocab_size = n_vocab
         )
         tokenizer.save_pretrained(tokenizer_path, cache_dir=hf_dir)
 
