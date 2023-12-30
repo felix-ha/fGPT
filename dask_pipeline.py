@@ -49,7 +49,7 @@ def load_file(input_file, output_path, n_texts_per_partition):
 
 def write_partition(lines, schema, partition, output_path):
     texts = "".join(lines).split(END_OF_TEXT)
-    data = [{"text_raw": text} for text in texts]
+    data = [{"text_raw": text + f' {END_OF_TEXT}'} for text in texts]
     df = dd.from_pandas(pd.DataFrame(data), npartitions=4)
     df["text_clean"] = df["text_raw"].map_partitions(
         lambda df: df.map(clean_text), meta=(None, "object")
