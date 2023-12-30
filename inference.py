@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from typing import List
 import functools 
 from transformers import AutoTokenizer
+from tokenizers.processors import TemplateProcessing
 
 
 class Beam(BaseModel):
@@ -141,7 +142,6 @@ if __name__ == "__main__":
 
     tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
     model = load_model(model_dict_file, vocab_size, n_positions)
-
 
     prompts = [
         "Alice was so tired when she got back home so she went",

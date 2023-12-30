@@ -1,4 +1,5 @@
 CHARACTER_REPLACEMENTS = {"“": '"', "”": '"', "‘": '"', "’": '"', "-": "–", "—": "–"}
+BEGIN_OF_TEXT = "<|beginoftext|>"
 END_OF_TEXT = "<|endoftext|>"
 UNK = "<|unk|>"
 TOKEN_TO_REMOVE = ["", " ", "\n\n", "\n\n\n"]

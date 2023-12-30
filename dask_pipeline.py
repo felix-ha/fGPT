@@ -11,6 +11,7 @@ from data_prep import write_to_json, read_from_json
 
 from tqdm import tqdm
 from transformers import GPT2TokenizerFast, AutoTokenizer
+from tokenizers.processors import TemplateProcessing
 
 import logging
 
@@ -78,12 +79,7 @@ def batch_iterator(text_file, n_partitions):
 
 
 def datapipeline(
-    input_file,
-    output_path,
-    train,
-    n_vocab,
-    n_texts_per_partition,
-    partition_size
+    input_file, output_path, train, n_vocab, n_texts_per_partition, partition_size
 ):
     output_path.mkdir(parents=True, exist_ok=True)
     tokenizer_path = output_path.joinpath("tokenizer")
@@ -99,9 +95,17 @@ def datapipeline(
 
     if train:
         tokenizer = GPT2TokenizerFast.from_pretrained("gpt2", cache_dir=hf_dir)
+        tokenizer.add_special_tokens(
+            {"bos_token": BEGIN_OF_TEXT, "eos_token": END_OF_TEXT, "unk_token": UNK}
+        )
+        tokenizer._tokenizer.post_processor = TemplateProcessing(
+            single=f"{BEGIN_OF_TEXT} $0",
+            special_tokens=[(BEGIN_OF_TEXT, 1), (END_OF_TEXT, 0), (UNK, 2)]
+        )
         tokenizer = tokenizer.train_new_from_iterator(
             # TODO: fix hardcoded number of partitions use (28)
-            text_iterator=batch_iterator(text_file, 28), vocab_size=n_vocab
+            text_iterator=batch_iterator(text_file, 1),
+            vocab_size=n_vocab,
         )
         tokenizer.save_pretrained(tokenizer_path, cache_dir=hf_dir)
 
@@ -142,7 +146,6 @@ def datapipeline(
 
 
 def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_size):
-
     if full:
         logging.info("Using full TinyStores dataset.")
         path_train = "data/TinyStoriesV2-GPT4-train.txt"
