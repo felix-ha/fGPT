@@ -25,7 +25,7 @@ from tokenizer import create_encoder, create_decoder, split_tokens_raw
 from data_prep import read_from_json, get_token_int_dicts
 
 from dionysus.training import TrainingConfig, train
-from model import (
+from fgpt.model import (
     LanguageModelDataset,
     simpleGPT,
     cross_entropy_language_model,

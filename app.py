@@ -3,7 +3,7 @@ import streamlit as st
 import gdown
 from fgpt.constants import *
 from data_prep import read_from_json
-from model import generate
+from fgpt.model import generate
 import torch
 from main import get_model
 import logging

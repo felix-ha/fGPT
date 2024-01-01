@@ -10,7 +10,7 @@ from dionysus.training import TrainingConfig, train
 import torch
 from torch.utils.data import DataLoader
 from data_prep import collate_fn
-from model import (
+from fgpt.model import (
     LanguageModelDataset,
     simpleGPT,
     cross_entropy_language_model,

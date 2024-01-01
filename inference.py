@@ -8,7 +8,7 @@ import numpy as np
 
 from fgpt.constants import *
 from data_prep import read_from_json 
-from model import generate
+from fgpt.model import generate
 from main import get_model
 from pydantic import BaseModel
 from typing import List

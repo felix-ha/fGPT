@@ -1,7 +1,7 @@
 import pytest
 import torch
 from transformers import GPT2Config, GPT2LMHeadModel
-from model import cross_entropy_language_model, generate
+from fgpt.model import cross_entropy_language_model, generate
 from tokenizer import create_encoder, create_decoder
 
 

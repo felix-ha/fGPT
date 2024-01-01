@@ -13,7 +13,7 @@ from data_prep import (
     get_token_int_dicts,
 )
 from torch.utils.data import DataLoader
-from model import LanguageModelDataset
+from fgpt.model import LanguageModelDataset
 from tokenizer import create_encoder
 
 

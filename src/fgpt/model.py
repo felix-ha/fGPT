@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset
-from fgpt.constants import END_OF_TEXT
+from fgpt.constants import *
 
 
 class Head(nn.Module):
@@ -113,6 +113,52 @@ class simpleGPT(nn.Module):
         x = self.blocks(x)
         logits = self.lm_head(x)
         return logits
+
+
+def get_model(vocab_size, n_positions, device):
+    return simpleGPT(
+        vocab_size=vocab_size,
+        n_embd=768,
+        num_heads=4,
+        block_size=n_positions,
+        n_layer=4,
+        dropout=0.1,
+        device=device,
+    )
+
+
+def get_tiny_model(vocab_size, n_positions, device):
+    return simpleGPT(
+        vocab_size=vocab_size,
+        n_embd=4,
+        num_heads=2,
+        block_size=n_positions,
+        n_layer=1,
+        dropout=0.1,
+        device=device,
+    )
+
+
+def input_ids_to_tensor(
+    input_ids: list[list[int]], pad: int = PADDING_ID
+) -> torch.tensor:
+    """
+    Convert a list of lists of input IDs to a tensor.
+    If the inner lists have different lengths, they will be padded with pad.
+    """
+    if not isinstance(input_ids[0], list):
+        return torch.tensor([input_ids])
+
+    max_len = max([len(input_id) for input_id in input_ids])
+    input_ids_padded = [
+        input_id + [pad] * (max_len - len(input_id)) for input_id in input_ids
+    ]
+    return torch.tensor(input_ids_padded)
+
+
+def collate_fn(batch):
+    x, y = zip(*batch)
+    return input_ids_to_tensor(x), input_ids_to_tensor(y)
 
 
 def cross_entropy_language_model(logits, targets):

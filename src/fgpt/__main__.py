@@ -2,6 +2,7 @@ import sys
 import argparse
 import fgpt
 from fgpt.data import data_pipeline
+from fgpt.training import start_training
 from fgpt.foo import bar
 
 
@@ -51,6 +52,12 @@ def main():
 
     parser_training = sub_parsers.add_parser('train', help='start or continue training')
     parser_training.add_argument(
+        "--tiny",
+        default=False,
+        action="store_true",
+        help="Use tiny model",
+    )
+    parser_training.add_argument(
         "--epochs",
         type=int,
         default=1,
@@ -62,7 +69,7 @@ def main():
     if args.subcommand == "data-pipeline":
         data_pipeline(args.data_path, args.full, args.n_vocab, args.n_texts, args.n_texts_per_partition, args.partition_size)
     elif args.subcommand == "train":
-        print(f"bar: {bar(args.epochs)}")
+        start_training(args.tiny)
 
 
 if __name__ == "__main__":
