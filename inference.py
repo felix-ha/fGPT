@@ -6,7 +6,7 @@ import pandas as pd
 import math
 import numpy as np
 
-from constants import *
+from fgpt.constants import *
 from data_prep import read_from_json 
 from model import generate
 from main import get_model

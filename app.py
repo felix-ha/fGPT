@@ -1,7 +1,7 @@
 from pathlib import Path
 import streamlit as st
 import gdown
-from constants import *
+from fgpt.constants import *
 from data_prep import read_from_json
 from model import generate
 import torch

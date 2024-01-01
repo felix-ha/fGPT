@@ -1,5 +1,5 @@
 import torch
-from constants import PADDING_ID, END_OF_TEXT
+from fgpt.constants import PADDING_ID, END_OF_TEXT
 import json
 from tqdm import tqdm
 from pathlib import Path

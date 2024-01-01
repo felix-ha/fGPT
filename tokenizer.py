@@ -1,5 +1,5 @@
 import pandas as pd
-from constants import TOKENS_NOT_TO_FILTER, END_OF_TEXT
+from fgpt.constants import TOKENS_NOT_TO_FILTER, END_OF_TEXT
 import logging
 import re
 from tqdm import tqdm

@@ -15,7 +15,7 @@ logger.addHandler(console_handler)
 import argparse
 
 from data_pipeline import pipeline
-from constants import *
+from fgpt.constants import *
 import wget
 import os
 import torch

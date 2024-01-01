@@ -2,9 +2,9 @@ from pathlib import Path
 import tempfile
 import pandas as pd
 
-from dask_pipeline import data_pipeline, get_texts_ids, load_vocabulary
+from fgpt.data import data_pipeline, get_texts_ids, load_vocabulary
 from data_prep import read_from_json
-from constants import *
+from fgpt.constants import *
 
 from dionysus.training import TrainingConfig, train
 import torch

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pandas as pd
 from torch.utils.data import Dataset
-from constants import END_OF_TEXT
+from fgpt.constants import END_OF_TEXT
 
 
 class Head(nn.Module):

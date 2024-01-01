@@ -1,8 +1,8 @@
 from pathlib import Path
 import dask.dataframe as dd
-from constants import *
+from fgpt.constants import *
 from data_prep import read_from_json
-from dask_pipeline import get_texts_ids
+from fgpt.data import get_texts_ids
 from main import get_model
 
 from dionysus.training import TrainingConfig, train

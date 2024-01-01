@@ -1,13 +1,11 @@
 import os
 import wget
-import argparse
 from pathlib import Path
 import pandas as pd
 import dask.dataframe as dd
 import pyarrow as pa
-from spacy.lang.en import English
-from constants import *
-from data_prep import write_to_json, read_from_json
+from fgpt.constants import *
+from fgpt.utils import write_to_json
 
 from tqdm import tqdm
 from transformers import GPT2TokenizerFast, AutoTokenizer
@@ -163,6 +161,8 @@ def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_siz
         path_train = "data/data_train.txt"
         path_validation = "data/data_validation.txt"
 
+    data_path = Path(data_path)
+
     datapipeline(
         path_train,
         data_path,
@@ -179,21 +179,3 @@ def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_siz
         n_texts_per_partition=n_texts_per_partition,
         partition_size=partition_size,
     )
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--full",
-        default=False,
-        action="store_true",
-        help="Use full TinyStores dataset instead of the small one.",
-    )
-    args = parser.parse_args()
-
-    data_path = Path("datapipeline")
-    n_vocab = 10_000
-    partition_size = "100MB"
-    n_texts_per_partition = 100_000
-
-    data_pipeline(data_path, args.full, n_vocab, n_texts_per_partition, partition_size)

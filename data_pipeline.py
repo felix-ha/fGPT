@@ -20,7 +20,7 @@ from data_prep import (
     read_from_json,
     load_input_ids
 )
-from constants import *
+from fgpt.constants import *
 
 import logging
 
