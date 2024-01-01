@@ -31,6 +31,12 @@ def main():
         help="Number of words in the vocabulary",
     )
     parser_data.add_argument(
+        "--n_texts",
+        type=int,
+        default=3_000_000,
+        help="Number of texts to use",
+    )
+    parser_data.add_argument(
         "--n_texts_per_partition",
         type=int,
         default=100_000,
@@ -54,7 +60,7 @@ def main():
     args = parser.parse_args(args=None if sys.argv[1:] else ['--help'])
 
     if args.subcommand == "data-pipeline":
-        data_pipeline(args.data_path, args.full, args.n_vocab, args.n_texts_per_partition, args.partition_size)
+        data_pipeline(args.data_path, args.full, args.n_vocab, args.n_texts, args.n_texts_per_partition, args.partition_size)
     elif args.subcommand == "train":
         print(f"bar: {bar(args.epochs)}")
 

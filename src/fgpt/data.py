@@ -24,8 +24,9 @@ def get_texts_ids(dataset_file):
     return texts_ids
 
 
-def load_file(input_file, output_path, n_texts_per_partition):
+def load_file(input_file, output_path, n_texts, n_texts_per_partition):
     lines = []
+    n_texts_sum = 0
     n_texts_current = 0
     partition = 0
 
@@ -35,12 +36,15 @@ def load_file(input_file, output_path, n_texts_per_partition):
         for line in file:
             lines.append(line.strip() + "\n")
             if END_OF_TEXT in line:
+                n_texts_sum += 1
                 n_texts_current += 1
             if n_texts_current == n_texts_per_partition:
                 write_partition(lines, schema, partition, output_path)
                 lines = []
                 n_texts_current = 0
                 partition += 1
+            if n_texts_sum == n_texts:
+                break
         # write last lines
         write_partition(lines, schema, partition, output_path)
 
@@ -77,7 +81,7 @@ def batch_iterator(text_file, n_partitions):
 
 
 def datapipeline(
-    input_file, output_path, train, n_vocab, n_texts_per_partition, partition_size
+    input_file, output_path, train, n_vocab, n_texts, n_texts_per_partition, partition_size
 ):
     output_path.mkdir(parents=True, exist_ok=True)
     tokenizer_path = output_path.joinpath("tokenizer")
@@ -88,7 +92,7 @@ def datapipeline(
     dataset_file = output_path.joinpath(dataset_file)
     hf_dir = "hf"
 
-    load_file(input_file, text_file, n_texts_per_partition)
+    load_file(input_file, text_file, n_texts, n_texts_per_partition)
     logging.info("written raw data")
 
     if train:
@@ -143,7 +147,7 @@ def datapipeline(
         write_to_json(dataset_info, data_info_file)
 
 
-def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_size):
+def data_pipeline(data_path, full, n_vocab, n_texts, n_texts_per_partition, partition_size):
     if full:
         logging.info("Using full TinyStores dataset.")
         path_train = "data/TinyStoriesV2-GPT4-train.txt"
@@ -168,6 +172,7 @@ def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_siz
         data_path,
         train=True,
         n_vocab=n_vocab,
+        n_texts=n_texts,
         n_texts_per_partition=n_texts_per_partition,
         partition_size=partition_size,
     )
@@ -176,6 +181,7 @@ def data_pipeline(data_path, full, n_vocab, n_texts_per_partition, partition_siz
         data_path,
         train=False,
         n_vocab=n_vocab,
+        n_texts=n_texts,
         n_texts_per_partition=n_texts_per_partition,
         partition_size=partition_size,
     )
