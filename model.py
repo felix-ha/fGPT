@@ -190,7 +190,7 @@ def generate(
                 break
 
     response_ids = x_input[:, response_idx:]
-    result = tokenizer.decode(response_ids.squeeze().tolist())
+    result = tokenizer.decode(response_ids.squeeze().tolist()).replace(END_OF_TEXT, "")
     if token_id != stop_token_id:
         result = result + f"(reached maximium tokens to generate: {max_n})"
     return result, pd.DataFrame(iterations)
