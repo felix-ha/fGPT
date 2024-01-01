@@ -1,21 +1,3 @@
-import logging
-
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s %(message)s")
-file_handler = logging.FileHandler("log.txt")
-file_handler.setLevel(logging.INFO)
-file_handler.setFormatter(formatter)
-logger.addHandler(file_handler)
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-
-import argparse
-
-from data_pipeline import pipeline
-from constants import *
 from model import simpleGPT
 
 
