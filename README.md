@@ -2,7 +2,7 @@
 
 > A language model trained from scratch
 
-Test the model here: https://felixgpt.streamlit.app/
+Test the model here: https://fgpt.felix-jobson.net 
 	
 
 # Overview
